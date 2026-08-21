@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#140f14" />
+  <title>Card RNG: Expansion Hit Calculator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Card RNG: Expansion</p>
+        <h1>Hit Calculator</h1>
+        <p class="lede">Estimate how likely you are to hit a specific card with your current Luck, Roll Speed, and Double Roll chance.</p>
+      </div>
+      <div class="formula-note">
+        <strong>Current roll-speed model</strong>
+        <span>1.5s at 100%, scaled by speed, minimum 0.3s.</span>
+      </div>
+    </header>
+
+    <section class="layout">
+      <div class="panel inputs-panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Setup</p>
+            <h2>Your roll</h2>
+          </div>
+          <button id="resetBtn" class="ghost-btn" type="button">Reset</button>
+        </div>
+
+        <label class="field span-2">
+          <span>Target card</span>
+          <input id="cardSearch" list="cardList" autocomplete="off" placeholder="Search a card..." />
+          <datalist id="cardList"></datalist>
+        </label>
+
+        <div id="targetCard" class="target-card span-2 hidden" aria-live="polite">
+          <div>
+            <span class="muted">Selected target</span>
+            <strong id="targetName">—</strong>
+          </div>
+          <div class="target-meta">
+            <span id="targetRarity">—</span>
+            <span id="targetSource">—</span>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>Luck <small>(× multiplier)</small></span>
+          <input id="luck" type="number" inputmode="decimal" min="0.000001" step="any" value="1" />
+        </label>
+
+        <label class="field">
+          <span>Roll Speed <small>(%)</small></span>
+          <input id="rollSpeed" type="number" inputmode="decimal" min="0.01" step="any" value="100" />
+        </label>
+
+        <label class="field">
+          <span>Double Roll <small>(%)</small></span>
+          <input id="doubleRoll" type="number" inputmode="decimal" min="0" max="100" step="any" value="0" />
+        </label>
+
+        <label class="field">
+          <span>Target rarity <small>(1 in X)</small></span>
+          <input id="rarity" type="number" inputmode="decimal" min="1" step="any" value="1000000" />
+        </label>
+
+        <div class="duration-block span-2">
+          <span class="field-title">Custom AFK duration</span>
+          <div class="duration-row">
+            <input id="durationValue" type="number" inputmode="decimal" min="0" step="any" value="8" />
+            <select id="durationUnit">
+              <option value="minutes">Minutes</option>
+              <option value="hours" selected>Hours</option>
+              <option value="days">Days</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="sourceWarning" class="warning span-2 hidden"></div>
+
+        <details class="assumptions span-2">
+          <summary>Calculation assumptions</summary>
+          <p>Until the exact Expansion roll selector is confirmed, card chance is modeled as <strong>Luck ÷ base rarity</strong>, capped at 100%. Double Roll is treated as a chance for one additional independent card on each roll cycle.</p>
+        </details>
+      </div>
+
+      <div class="panel results-panel">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Result</p>
+            <h2>Your odds</h2>
+          </div>
+          <span id="calcStatus" class="status-pill">Ready</span>
+        </div>
+
+        <div class="hero-stat">
+          <span>Effective card odds</span>
+          <strong id="effectiveOdds">1 in 1,000,000</strong>
+          <small id="perCardPercent">0.0001% per generated card</small>
+        </div>
+
+        <div class="stat-grid">
+          <article class="stat-card">
+            <span>Roll interval</span>
+            <strong id="rollInterval">1.50s</strong>
+            <small id="speedCapText">100% speed</small>
+          </article>
+          <article class="stat-card">
+            <span>Roll cycles / hour</span>
+            <strong id="cyclesHour">2,400</strong>
+            <small>before extra cards</small>
+          </article>
+          <article class="stat-card">
+            <span>Expected cards / hour</span>
+            <strong id="cardsHour">2,400</strong>
+            <small>includes Double Roll</small>
+          </article>
+          <article class="stat-card">
+            <span>Hit chance / cycle</span>
+            <strong id="cycleChance">0.0001%</strong>
+            <small>includes Double Roll</small>
+          </article>
+        </div>
+
+        <div class="custom-result">
+          <div>
+            <span id="customLabel">Chance in 8 hours</span>
+            <strong id="customChance">—</strong>
+          </div>
+          <div class="meter"><div id="chanceBar"></div></div>
+          <p id="customDetail" class="muted">—</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="lower-grid">
+      <div class="panel">
+        <div class="section-head compact">
+          <div>
+            <p class="eyebrow">Probability curve</p>
+            <h2>Chance over time</h2>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Time</th><th>Roll cycles</th><th>Hit chance</th></tr></thead>
+            <tbody id="timeTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-head compact">
+          <div>
+            <p class="eyebrow">Milestones</p>
+            <h2>How long until...</h2>
+          </div>
+        </div>
+        <div id="milestones" class="milestones"></div>
+      </div>
+    </section>
+
+    <section class="panel unlucky-panel">
+      <div>
+        <p class="eyebrow">Streak check</p>
+        <h2>How unlucky would no hit be?</h2>
+        <p id="unluckyText" class="muted">Set your target and AFK duration to see the chance that an equivalent session would still have no hit.</p>
+      </div>
+      <div class="unlucky-number">
+        <span>No-hit chance</span>
+        <strong id="noHitChance">—</strong>
+      </div>
+    </section>
+
+    <footer>
+      <span id="dataStatus">Loading current Expansion card data…</span>
+      <span>Math is client-side; no stats are uploaded.</span>
+    </footer>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
