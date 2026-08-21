@@ -8,6 +8,8 @@ const BORDERS = {
   Galaxy: { denominator: 1_000_000, luckId: "galaxyLuck" },
 };
 
+const NUMBER_SUFFIXES = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
+
 const $ = (id) => document.getElementById(id);
 
 const els = {
@@ -51,8 +53,18 @@ function getRollInterval() {
 
 function formatNumber(value, decimals = 0) {
   if (!Number.isFinite(value)) return "—";
-  if (value >= 1e18) return value.toExponential(3);
-  return value.toLocaleString(undefined, { maximumFractionDigits: decimals });
+  const abs = Math.abs(value);
+
+  if (abs < 1_000) {
+    return value.toLocaleString(undefined, { maximumFractionDigits: decimals });
+  }
+
+  const tier = Math.floor(Math.log10(abs) / 3);
+  if (tier >= NUMBER_SUFFIXES.length) return value.toExponential(2);
+
+  const scaled = value / Math.pow(1_000, tier);
+  const digits = Math.abs(scaled) >= 100 ? 0 : Math.abs(scaled) >= 10 ? 1 : 2;
+  return `${scaled.toFixed(digits).replace(/\.0+$|(?<=\.[0-9]*[1-9])0+$/, "")}${NUMBER_SUFFIXES[tier]}`;
 }
 
 function formatTime(seconds) {
@@ -65,6 +77,8 @@ function formatTime(seconds) {
   const hours = Math.floor((total % 86_400) / 3_600);
   const minutes = Math.floor((total % 3_600) / 60);
   const secs = total % 60;
+
+  if (years >= 1_000) return `${formatNumber(years)}y`;
 
   const parts = [];
   if (years) parts.push(`${years}y`);
