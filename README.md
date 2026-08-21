@@ -9,6 +9,7 @@ Calculator inputs:
 - Roll Speed %
 - Target card or manual rarity
 - Required stacked normal-card borders: Platinum, Crystal, Ruby, Galaxy
+- Separate player-entered Luck multiplier for each border
 - 50% Border Gamepass
 - Required weather active/inactive when applicable
 - AFK duration
@@ -18,6 +19,8 @@ Normal card border reference used by the calculator:
 - Crystal: 1 / 10,000, ×10,000
 - Ruby: 1 / 100,000, ×100,000
 - Galaxy: 1 / 1,000,000, ×1,000,000
+
+Each border's actual modeled chance is its entered Border Luck divided by that border's base denominator, capped at 100%. Example: 25× Platinum Luck gives 25 / 100 before the optional gamepass modifier.
 
 Aura Cards are a separate system. Their supported borders are Platinum, Crystal, and Galaxy; Aura Card borders do not stack.
 
