@@ -51,6 +51,10 @@ function getRollInterval() {
   return Math.max(MIN_ROLL_SECONDS, BASE_ROLL_SECONDS / (speed / 100));
 }
 
+function trimFixed(value, digits) {
+  return value.toFixed(digits).replace(/\.0+$/, "").replace(/(\.\d*?[1-9])0+$/, "$1");
+}
+
 function formatNumber(value, decimals = 0) {
   if (!Number.isFinite(value)) return "—";
   const abs = Math.abs(value);
@@ -64,7 +68,7 @@ function formatNumber(value, decimals = 0) {
 
   const scaled = value / Math.pow(1_000, tier);
   const digits = Math.abs(scaled) >= 100 ? 0 : Math.abs(scaled) >= 10 ? 1 : 2;
-  return `${scaled.toFixed(digits).replace(/\.0+$|(?<=\.[0-9]*[1-9])0+$/, "")}${NUMBER_SUFFIXES[tier]}`;
+  return `${trimFixed(scaled, digits)}${NUMBER_SUFFIXES[tier]}`;
 }
 
 function formatTime(seconds) {
