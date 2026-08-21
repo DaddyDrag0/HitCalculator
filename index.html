@@ -3,263 +3,135 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#140f14" />
-  <title>Card RNG: Expansion Hit Calculator</title>
+  <meta name="theme-color" content="#0b0d12" />
+  <title>Border Calculator — Card RNG: Expansion</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="shell">
-    <header class="hero">
+  <main class="page">
+    <header class="topbar">
       <div>
-        <p class="eyebrow">Card RNG: Expansion</p>
-        <h1>Hit Calculator</h1>
-        <p class="lede">Estimate your chance to hit a specific Card RNG: Expansion card, including stacked Platinum, Crystal, Ruby, and Galaxy border requirements.</p>
+        <div class="game-name">CARD RNG: EXPANSION</div>
+        <h1>Border Calculator</h1>
+        <p>See how many rolls and how much time it takes to hit a border.</p>
       </div>
-      <div class="formula-note">
-        <strong>Roll speed model</strong>
-        <span>Temporary: 1.5s at 100%, divided by Roll Speed, minimum 0.3s.</span>
-      </div>
+      <button id="resetBtn" class="reset-btn" type="button">Reset</button>
     </header>
 
-    <section class="layout">
-      <div class="panel inputs-panel">
-        <div class="section-head">
-          <div>
-            <p class="eyebrow">Setup</p>
-            <h2>Your rolling stats</h2>
-          </div>
-          <button id="resetBtn" class="ghost-btn" type="button">Reset</button>
+    <section class="calculator">
+      <div class="setup-card card">
+        <div class="section-title">Target border</div>
+        <div class="border-tabs" role="radiogroup" aria-label="Target border">
+          <button class="border-tab platinum" type="button" data-border="Platinum" role="radio" aria-checked="true">
+            <span class="border-dot"></span>
+            <span class="border-tab-copy"><strong>Platinum</strong><small>1 / 100 base</small></span>
+          </button>
+          <button class="border-tab crystal" type="button" data-border="Crystal" role="radio" aria-checked="false">
+            <span class="border-dot"></span>
+            <span class="border-tab-copy"><strong>Crystal</strong><small>1 / 10,000 base</small></span>
+          </button>
+          <button class="border-tab ruby" type="button" data-border="Ruby" role="radio" aria-checked="false">
+            <span class="border-dot"></span>
+            <span class="border-tab-copy"><strong>Ruby</strong><small>1 / 100,000 base</small></span>
+          </button>
+          <button class="border-tab galaxy" type="button" data-border="Galaxy" role="radio" aria-checked="false">
+            <span class="border-dot"></span>
+            <span class="border-tab-copy"><strong>Galaxy</strong><small>1 / 1,000,000 base</small></span>
+          </button>
         </div>
 
-        <label class="field span-2">
-          <span>Target card</span>
-          <input id="cardSearch" list="cardList" autocomplete="off" placeholder="Search an Expansion card..." />
-          <datalist id="cardList"></datalist>
-        </label>
+        <div class="divider"></div>
 
-        <div id="targetCard" class="target-card span-2 hidden" aria-live="polite">
-          <div>
-            <span class="muted">Selected target</span>
-            <strong id="targetName">—</strong>
-          </div>
-          <div class="target-meta">
-            <span id="targetRarity">—</span>
-            <span id="targetSource">—</span>
-          </div>
-        </div>
-
-        <label class="field">
-          <span>Luck <small>(× total multiplier)</small></span>
-          <input id="luck" type="number" inputmode="decimal" min="0.000001" step="any" value="1" />
-          <small class="field-help">Enter your final in-game Luck after active boosts.</small>
-        </label>
-
-        <label class="field">
-          <span>Roll Speed <small>(%)</small></span>
-          <input id="rollSpeed" type="number" inputmode="decimal" min="0.01" step="any" value="100" />
-          <small class="field-help">Enter the percentage shown by the game, e.g. 2000.</small>
-        </label>
-
-        <label class="field span-2">
-          <span>Target rarity <small>(1 in X)</small></span>
-          <input id="rarity" type="number" inputmode="decimal" min="1" step="any" value="1000000" />
-          <small class="field-help">Filled automatically from the current Expansion card list, or use it manually.</small>
-        </label>
-
-        <fieldset class="border-picker span-2">
-          <legend>Required card borders</legend>
-          <p class="field-help">Normal card borders can stack. Select every border the hit must contain. Extra unselected borders do not disqualify the hit.</p>
-          <div class="border-options">
-            <label class="border-option platinum">
-              <input id="borderPlatinum" type="checkbox" value="Platinum" />
-              <span><strong>Platinum</strong><small>Base 1 / 100</small></span>
-            </label>
-            <label class="border-option crystal">
-              <input id="borderCrystal" type="checkbox" value="Crystal" />
-              <span><strong>Crystal</strong><small>Base 1 / 10,000</small></span>
-            </label>
-            <label class="border-option ruby">
-              <input id="borderRuby" type="checkbox" value="Ruby" />
-              <span><strong>Ruby</strong><small>Base 1 / 100,000</small></span>
-            </label>
-            <label class="border-option galaxy">
-              <input id="borderGalaxy" type="checkbox" value="Galaxy" />
-              <span><strong>Galaxy</strong><small>Base 1 / 1,000,000</small></span>
-            </label>
-          </div>
-          <label class="toggle-row">
-            <input id="borderGamepass" type="checkbox" />
-            <span><strong>50% Border Gamepass</strong><small>Apply a 1.5× boost to each required border chance.</small></span>
+        <div class="section-title">Border luck</div>
+        <div class="luck-grid">
+          <label class="luck-field" data-luck-border="Platinum">
+            <span>Platinum</span>
+            <div class="input-wrap"><input id="platinumLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
           </label>
-        </fieldset>
-
-        <label id="weatherRow" class="toggle-row span-2 hidden">
-          <input id="weatherActive" type="checkbox" checked />
-          <span><strong id="weatherTitle">Required weather active</strong><small id="weatherHelp">The selected card can only be rolled while its weather is eligible.</small></span>
-        </label>
-
-        <div class="duration-block span-2">
-          <span class="field-title">Custom AFK duration</span>
-          <div class="duration-row">
-            <input id="durationValue" type="number" inputmode="decimal" min="0" step="any" value="8" />
-            <select id="durationUnit">
-              <option value="minutes">Minutes</option>
-              <option value="hours" selected>Hours</option>
-              <option value="days">Days</option>
-            </select>
-          </div>
+          <label class="luck-field" data-luck-border="Crystal">
+            <span>Crystal</span>
+            <div class="input-wrap"><input id="crystalLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+          <label class="luck-field" data-luck-border="Ruby">
+            <span>Ruby</span>
+            <div class="input-wrap"><input id="rubyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+          <label class="luck-field" data-luck-border="Galaxy">
+            <span>Galaxy</span>
+            <div class="input-wrap"><input id="galaxyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
         </div>
 
-        <div id="sourceWarning" class="warning span-2 hidden"></div>
+        <div class="divider"></div>
 
-        <details class="assumptions span-2">
-          <summary>What is confirmed vs temporary?</summary>
-          <p><strong>Confirmed/source-aligned:</strong> Expansion card data and sources; normal card border set Platinum / Crystal / Ruby / Galaxy; border rarity multipliers ×100 / ×10,000 / ×100,000 / ×1,000,000; stacked card borders; separate Aura Card border system.</p>
-          <p><strong>Temporary until the live rolling resolver is recovered:</strong> card hit chance = Luck ÷ rarity, roll interval = 1.5 ÷ (Roll Speed / 100) with a 0.3s minimum, and required border rolls are treated as independent. Chaska's Blessing is not guessed here.</p>
-        </details>
+        <div class="settings-grid">
+          <label class="setting-field">
+            <span>Roll Speed</span>
+            <div class="input-wrap"><input id="rollSpeed" type="number" inputmode="decimal" min="0.01" step="any" value="100" /><b>%</b></div>
+          </label>
+
+          <label class="gamepass-toggle">
+            <input id="borderGamepass" type="checkbox" />
+            <span class="toggle-ui"></span>
+            <span class="toggle-copy"><strong>50% Border Gamepass</strong><small>Leave off if your entered luck already includes it.</small></span>
+          </label>
+        </div>
       </div>
 
-      <div class="panel results-panel">
-        <div class="section-head">
+      <div class="result-card card" id="resultCard" data-accent="Platinum">
+        <div class="result-head">
           <div>
-            <p class="eyebrow">Result</p>
-            <h2>Your target odds</h2>
+            <span class="result-label">Effective odds</span>
+            <h2 id="effectiveOdds">1 in 100</h2>
           </div>
-          <span id="calcStatus" class="status-pill">Ready</span>
+          <div class="selected-border" id="selectedBorder">Platinum</div>
         </div>
 
-        <div class="hero-stat">
-          <span>Combined hit odds</span>
-          <strong id="combinedOdds">1 in 1,000,000</strong>
-          <small id="combinedPercent">0.0001% per roll</small>
-        </div>
-
-        <div class="stat-grid">
-          <article class="stat-card">
-            <span>Card odds after Luck</span>
-            <strong id="cardOdds">1 in 1,000,000</strong>
-            <small id="cardPercent">0.0001%</small>
-          </article>
-          <article class="stat-card">
-            <span>Required border odds</span>
-            <strong id="borderOdds">1 in 1</strong>
-            <small id="borderSummary">No border required</small>
-          </article>
-          <article class="stat-card">
-            <span>Roll interval</span>
-            <strong id="rollInterval">1.5s</strong>
-            <small id="speedCapText">100% Roll Speed</small>
-          </article>
-          <article class="stat-card">
-            <span>Rolls / hour</span>
-            <strong id="rollsHour">2,400</strong>
-            <small>one generated card per roll</small>
-          </article>
-          <article class="stat-card">
-            <span>Expected hits / hour</span>
-            <strong id="hitsHour">0.0024</strong>
-            <small>statistical average, not a guarantee</small>
-          </article>
-          <article class="stat-card">
-            <span>Eligibility</span>
-            <strong id="eligibility">Eligible</strong>
-            <small id="eligibilityDetail">Normal roll target</small>
-          </article>
-        </div>
-
-        <div class="custom-result">
-          <div>
-            <span id="customLabel">Chance in 8 hours</span>
-            <strong id="customChance">—</strong>
+        <div class="main-results">
+          <div class="main-stat">
+            <span>Average rolls</span>
+            <strong id="averageRolls">100</strong>
           </div>
-          <div class="meter"><div id="chanceBar"></div></div>
-          <p id="customDetail" class="muted">—</p>
+          <div class="main-stat">
+            <span>Average time</span>
+            <strong id="averageTime">2m 30s</strong>
+          </div>
         </div>
+
+        <div class="mini-stats">
+          <div><span>Chance per roll</span><strong id="chancePerRoll">1%</strong></div>
+          <div><span>Roll interval</span><strong id="rollInterval">1.5s</strong></div>
+          <div><span>Rolls / hour</span><strong id="rollsPerHour">2,400</strong></div>
+        </div>
+
+        <div class="speed-note" id="speedNote"></div>
       </div>
     </section>
 
-    <section class="lower-grid">
-      <div class="panel">
-        <div class="section-head compact">
-          <div>
-            <p class="eyebrow">Probability curve</p>
-            <h2>Chance over time</h2>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Time</th><th>Rolls</th><th>Hit chance</th></tr></thead>
-            <tbody id="timeTable"></tbody>
-          </table>
+    <section class="milestone-card card">
+      <div class="milestone-header">
+        <div>
+          <div class="section-title">Chance milestones</div>
+          <p>How many rolls you need to reach each chance of seeing the selected border at least once.</p>
         </div>
       </div>
 
-      <div class="panel">
-        <div class="section-head compact">
-          <div>
-            <p class="eyebrow">Milestones</p>
-            <h2>How long until...</h2>
-          </div>
+      <div class="milestone-table">
+        <div class="milestone-row milestone-head-row">
+          <span>Chance</span><span>Rolls</span><span>Time</span>
         </div>
-        <div id="milestones" class="milestones"></div>
-      </div>
-    </section>
-
-    <section class="lower-grid mechanics-grid">
-      <div class="panel">
-        <div class="section-head compact">
-          <div>
-            <p class="eyebrow">Expansion borders</p>
-            <h2>Normal card border reference</h2>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Border</th><th>Base odds used</th><th>Rarity multiplier</th></tr></thead>
-            <tbody>
-              <tr><td>Platinum</td><td>1 / 100</td><td>×100</td></tr>
-              <tr><td>Crystal</td><td>1 / 10,000</td><td>×10,000</td></tr>
-              <tr><td>Ruby</td><td>1 / 100,000</td><td>×100,000</td></tr>
-              <tr><td>Galaxy</td><td>1 / 1,000,000</td><td>×1,000,000</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="panel aura-note">
-        <div class="section-head compact">
-          <div>
-            <p class="eyebrow">Separate system</p>
-            <h2>Aura Card borders</h2>
-          </div>
-        </div>
-        <p>Aura Cards are not normal card rolls. Their supported borders are Platinum, Crystal, and Galaxy, and those borders do not stack.</p>
-        <div class="aura-chips">
-          <span>Platinum ×10 aura rarity</span>
-          <span>Crystal ×100</span>
-          <span>Galaxy ×1,000</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel unlucky-panel">
-      <div>
-        <p class="eyebrow">Streak check</p>
-        <h2>How unlucky would no hit be?</h2>
-        <p id="unluckyText" class="muted">Set your target and AFK duration to see the chance that an equivalent session would still have no hit.</p>
-      </div>
-      <div class="unlucky-number">
-        <span>No-hit chance</span>
-        <strong id="noHitChance">—</strong>
+        <div class="milestone-row"><strong>50%</strong><span id="rolls50">—</span><span id="time50">—</span></div>
+        <div class="milestone-row"><strong>75%</strong><span id="rolls75">—</span><span id="time75">—</span></div>
+        <div class="milestone-row"><strong>90%</strong><span id="rolls90">—</span><span id="time90">—</span></div>
+        <div class="milestone-row"><strong>95%</strong><span id="rolls95">—</span><span id="time95">—</span></div>
+        <div class="milestone-row"><strong>99%</strong><span id="rolls99">—</span><span id="time99">—</span></div>
       </div>
     </section>
 
     <footer>
-      <span id="dataStatus">Loading current Expansion card data…</span>
-      <span>All calculations run locally in your browser.</span>
+      Roll Speed currently uses 1.5s at 100%, with a 0.3s minimum. This can be changed once the exact live formula is confirmed.
     </footer>
   </main>
   <script src="app.js"></script>
-  <script src="border-luck.js"></script>
 </body>
 </html>
