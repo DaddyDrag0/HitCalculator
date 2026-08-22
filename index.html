@@ -13,7 +13,6 @@
       <div>
         <div class="game-name">CARD RNG: EXPANSION</div>
         <h1>Stat Optimizer</h1>
-        <p>Enter your profile stats, choose the borders you care about, then compare which stat upgrade helps the most.</p>
       </div>
       <button id="resetBtn" class="reset-btn" type="button">Reset</button>
     </header>
@@ -21,10 +20,7 @@
     <section class="main-grid">
       <div class="card setup-card">
         <div class="section-head">
-          <div>
-            <div class="section-title">Current stats</div>
-            <p>Use the values shown on your in-game profile. Potion, charm, skill-tree, and relic Roll Speed boosts are already included in that displayed Roll Speed.</p>
-          </div>
+          <div class="section-title">Current stats</div>
         </div>
 
         <div class="stats-grid">
@@ -67,7 +63,7 @@
 
         <label class="check-row">
           <input id="timeStorm" type="checkbox" />
-          <span><strong>Time Storm active</strong><small>Acts as another ×2 rolling-rate multiplier.</small></span>
+          <span><strong>Time Storm active</strong></span>
         </label>
 
         <div class="divider"></div>
@@ -95,8 +91,6 @@
           <div><span>Cards / second</span><strong id="cardsPerSecond">1</strong></div>
           <div><span>Rolls / hour</span><strong id="rollsPerHour">3.6K</strong></div>
         </div>
-
-        <div id="speedBreakdown" class="source-note"></div>
       </aside>
     </section>
 
@@ -105,7 +99,6 @@
         <div>
           <div class="section-title">Compare upgrades</div>
           <h2>What should you improve?</h2>
-          <p>Enter how much each possible upgrade would add. The list ranks them by the average time they save for your selected border goal.</p>
         </div>
       </div>
 
@@ -119,10 +112,6 @@
 
       <div id="upgradeResults" class="upgrade-results"></div>
     </section>
-
-    <footer>
-      Roll rate = (displayed Roll Speed / 100) × Speed Structure multiplier. Time Storm adds another ×2. Level 7 Speed Structure = ×1.5.
-    </footer>
   </main>
   <script src="app.js"></script>
 </body>
