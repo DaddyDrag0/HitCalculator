@@ -1,1 +1,1 @@
-# HitCalculator
+# Hit Calc

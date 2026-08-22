@@ -4,24 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0d12" />
-  <title>Stat Optimizer — Card RNG: Expansion</title>
+  <title>Hit Calc</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <main class="page">
     <header class="topbar">
-      <div>
-        <div class="game-name">CARD RNG: EXPANSION</div>
-        <h1>Stat Optimizer</h1>
-      </div>
+      <h1>Border Calc</h1>
       <button id="resetBtn" class="reset-btn" type="button">Reset</button>
     </header>
 
     <section class="main-grid">
       <div class="card setup-card">
-        <div class="section-head">
-          <div class="section-title">Current stats</div>
-        </div>
+        <div class="section-title">Current stats</div>
 
         <div class="stats-grid">
           <label class="stat-field speed-field">
@@ -43,19 +38,19 @@
             </select>
           </label>
 
-          <label class="stat-field platinum-field" data-stat-border="Platinum">
+          <label class="stat-field platinum-field">
             <span>Platinum Luck</span>
             <div class="input-wrap"><input id="platinumLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
           </label>
-          <label class="stat-field crystal-field" data-stat-border="Crystal">
+          <label class="stat-field crystal-field">
             <span>Crystal Luck</span>
             <div class="input-wrap"><input id="crystalLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
           </label>
-          <label class="stat-field ruby-field" data-stat-border="Ruby">
+          <label class="stat-field ruby-field">
             <span>Ruby Luck</span>
             <div class="input-wrap"><input id="rubyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
           </label>
-          <label class="stat-field galaxy-field" data-stat-border="Galaxy">
+          <label class="stat-field galaxy-field">
             <span>Galaxy Luck</span>
             <div class="input-wrap"><input id="galaxyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
           </label>
@@ -63,7 +58,7 @@
 
         <label class="check-row">
           <input id="timeStorm" type="checkbox" />
-          <span><strong>Time Storm active</strong></span>
+          <span><strong>Time Storm</strong></span>
         </label>
 
         <div class="divider"></div>
@@ -78,7 +73,7 @@
       </div>
 
       <aside class="card result-card">
-        <div class="result-label">Current setup</div>
+        <div class="result-label">Selected target</div>
         <div id="selectedBorders" class="selected-borders"></div>
 
         <div class="primary-results">
@@ -87,32 +82,32 @@
         </div>
 
         <div class="secondary-results">
-          <div><span>Roll interval</span><strong id="rollInterval">1s</strong></div>
           <div><span>Cards / second</span><strong id="cardsPerSecond">1</strong></div>
           <div><span>Rolls / hour</span><strong id="rollsPerHour">3.6K</strong></div>
         </div>
       </aside>
     </section>
 
-    <section class="card optimizer-card">
-      <div class="optimizer-head">
-        <div>
-          <div class="section-title">Compare upgrades</div>
-          <h2>What should you improve?</h2>
+    <section class="card time-card">
+      <div class="time-head">
+        <div class="section-title">Time span</div>
+        <div class="time-controls">
+          <div class="input-wrap time-value-wrap"><input id="timeValue" type="number" inputmode="decimal" min="0" step="any" value="1" /></div>
+          <select id="timeUnit">
+            <option value="second">Seconds</option>
+            <option value="minute">Minutes</option>
+            <option value="hour" selected>Hours</option>
+            <option value="day">Days</option>
+            <option value="week">Weeks</option>
+          </select>
+          <div class="span-rolls"><span>Rolls</span><strong id="timeRolls">3.6K</strong></div>
         </div>
       </div>
 
-      <div class="upgrade-inputs">
-        <label class="upgrade-field"><span>Roll Speed</span><div class="input-wrap"><b class="prefix">+</b><input id="gainRollSpeed" type="number" inputmode="decimal" min="0" step="any" value="10" /><b>%</b></div></label>
-        <label class="upgrade-field platinum-field" data-upgrade-border="Platinum"><span>Platinum Luck</span><div class="input-wrap"><b class="prefix">+</b><input id="gainPlatinum" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div></label>
-        <label class="upgrade-field crystal-field" data-upgrade-border="Crystal"><span>Crystal Luck</span><div class="input-wrap"><b class="prefix">+</b><input id="gainCrystal" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div></label>
-        <label class="upgrade-field ruby-field" data-upgrade-border="Ruby"><span>Ruby Luck</span><div class="input-wrap"><b class="prefix">+</b><input id="gainRuby" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div></label>
-        <label class="upgrade-field galaxy-field" data-upgrade-border="Galaxy"><span>Galaxy Luck</span><div class="input-wrap"><b class="prefix">+</b><input id="gainGalaxy" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div></label>
-      </div>
-
-      <div id="upgradeResults" class="upgrade-results"></div>
+      <div id="borderChanceResults" class="chance-results"></div>
     </section>
   </main>
+
   <script src="app.js"></script>
 </body>
 </html>

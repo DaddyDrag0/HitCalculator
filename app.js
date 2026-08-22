@@ -1,10 +1,16 @@
-const BASE_COOLDOWN_SECONDS = 1;
-
 const BORDERS = {
-  Platinum: { denominator: 100, luckId: "platinumLuck", gainId: "gainPlatinum" },
-  Crystal: { denominator: 10_000, luckId: "crystalLuck", gainId: "gainCrystal" },
-  Ruby: { denominator: 100_000, luckId: "rubyLuck", gainId: "gainRuby" },
-  Galaxy: { denominator: 1_000_000, luckId: "galaxyLuck", gainId: "gainGalaxy" },
+  Platinum: { denominator: 100, luckId: "platinumLuck" },
+  Crystal: { denominator: 10_000, luckId: "crystalLuck" },
+  Ruby: { denominator: 100_000, luckId: "rubyLuck" },
+  Galaxy: { denominator: 1_000_000, luckId: "galaxyLuck" },
+};
+
+const TIME_UNITS = {
+  second: 1,
+  minute: 60,
+  hour: 3_600,
+  day: 86_400,
+  week: 604_800,
 };
 
 const NUMBER_SUFFIXES = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
@@ -18,11 +24,12 @@ const els = {
   selectedBorders: $("selectedBorders"),
   averageRolls: $("averageRolls"),
   averageTime: $("averageTime"),
-  rollInterval: $("rollInterval"),
   cardsPerSecond: $("cardsPerSecond"),
   rollsPerHour: $("rollsPerHour"),
-  gainRollSpeed: $("gainRollSpeed"),
-  upgradeResults: $("upgradeResults"),
+  timeValue: $("timeValue"),
+  timeUnit: $("timeUnit"),
+  timeRolls: $("timeRolls"),
+  borderChanceResults: $("borderChanceResults"),
 };
 
 const selected = new Set(["Platinum"]);
@@ -43,6 +50,7 @@ function formatNumber(value, decimals = 0) {
 
   const tier = Math.floor(Math.log10(abs) / 3);
   if (tier >= NUMBER_SUFFIXES.length) return value.toExponential(2);
+
   const scaled = value / Math.pow(1_000, tier);
   const digits = Math.abs(scaled) >= 100 ? 0 : Math.abs(scaled) >= 10 ? 1 : 2;
   return `${trimFixed(scaled, digits)}${NUMBER_SUFFIXES[tier]}`;
@@ -70,15 +78,26 @@ function formatTime(seconds) {
   return parts.slice(0, 3).join(" ") || "0s";
 }
 
-function getStats(overrides = {}) {
-  const stats = {
+function formatPercent(probability) {
+  if (!Number.isFinite(probability) || probability <= 0) return "0%";
+  if (probability >= 1 - 1e-12) return "100%";
+
+  const percent = probability * 100;
+  if (percent >= 10) return `${trimFixed(percent, 1)}%`;
+  if (percent >= 1) return `${trimFixed(percent, 2)}%`;
+  if (percent >= 0.01) return `${trimFixed(percent, 3)}%`;
+  if (percent >= 0.0001) return `${trimFixed(percent, 5)}%`;
+  return `${percent.toExponential(2)}%`;
+}
+
+function getStats() {
+  return {
     rollSpeed: readNumber(els.rollSpeed, 100, 0.01),
     Platinum: readNumber($(BORDERS.Platinum.luckId), 0, 0),
     Crystal: readNumber($(BORDERS.Crystal.luckId), 0, 0),
     Ruby: readNumber($(BORDERS.Ruby.luckId), 0, 0),
     Galaxy: readNumber($(BORDERS.Galaxy.luckId), 0, 0),
   };
-  return Object.assign(stats, overrides);
 }
 
 function speedStructureMultiplier() {
@@ -86,34 +105,33 @@ function speedStructureMultiplier() {
   return 1 + (0.5 * level / 7);
 }
 
-function timeStormMultiplier() {
-  return els.timeStorm.checked ? 2 : 1;
-}
-
 function rollsPerSecond(stats) {
-  return (stats.rollSpeed / 100) * speedStructureMultiplier() * timeStormMultiplier();
+  const stormMultiplier = els.timeStorm.checked ? 2 : 1;
+  return (stats.rollSpeed / 100) * speedStructureMultiplier() * stormMultiplier;
 }
 
 function borderRate(name, stats) {
   return Math.min(1, stats[name] / BORDERS[name].denominator);
 }
 
-function stackedRate(stats) {
-  if (!selected.size) return 0;
+function combinationRate(names, stats) {
   let rate = 1;
-  for (const name of selected) rate *= borderRate(name, stats);
+  for (const name of names) rate *= borderRate(name, stats);
   return rate;
 }
 
+function selectedRate(stats) {
+  if (!selected.size) return 0;
+  return combinationRate([...selected], stats);
+}
+
 function performance(stats) {
-  const rate = stackedRate(stats);
+  const rate = selectedRate(stats);
   const cardsPerSecond = rollsPerSecond(stats);
-  const interval = cardsPerSecond > 0 ? BASE_COOLDOWN_SECONDS / cardsPerSecond : Infinity;
   const rolls = rate > 0 ? 1 / rate : Infinity;
-  const time = rolls * interval;
+  const time = cardsPerSecond > 0 ? rolls / cardsPerSecond : Infinity;
+
   return {
-    rate,
-    interval,
     rolls,
     time,
     cardsPerSecond,
@@ -128,140 +146,112 @@ function updateTargetUI() {
     button.setAttribute("aria-pressed", String(active));
   });
 
-  document.querySelectorAll("[data-stat-border]").forEach((field) => {
-    field.classList.toggle("active", selected.has(field.dataset.statBorder));
-  });
-
-  document.querySelectorAll("[data-upgrade-border]").forEach((field) => {
-    field.classList.toggle("active", selected.has(field.dataset.upgradeBorder));
-  });
-
   els.selectedBorders.replaceChildren();
   if (!selected.size) {
     const empty = document.createElement("span");
     empty.className = "empty-target";
-    empty.textContent = "Select at least one border";
+    empty.textContent = "Select a border";
     els.selectedBorders.append(empty);
     return;
   }
 
   for (const name of Object.keys(BORDERS)) {
     if (!selected.has(name)) continue;
-    const chip = document.createElement("span");
-    chip.className = `target-chip ${name.toLowerCase()}`;
-    chip.textContent = name;
-    els.selectedBorders.append(chip);
+    els.selectedBorders.append(makeBorderChip(name));
   }
 }
 
-function candidateUpgradeResults(baseStats, basePerf) {
-  const candidates = [];
-  const speedGain = readNumber(els.gainRollSpeed, 0, 0);
-  if (speedGain > 0) {
-    const stats = getStats({ rollSpeed: baseStats.rollSpeed + speedGain });
-    const perf = performance(stats);
-    candidates.push({
-      key: "RollSpeed",
-      label: "Roll Speed",
-      gain: `+${formatNumber(speedGain, 2)}%`,
-      perf,
-      affectsRolls: false,
-    });
-  }
-
-  for (const name of Object.keys(BORDERS)) {
-    if (!selected.has(name)) continue;
-    const gain = readNumber($(BORDERS[name].gainId), 0, 0);
-    if (gain <= 0) continue;
-    const stats = getStats({ [name]: baseStats[name] + gain });
-    const perf = performance(stats);
-    candidates.push({
-      key: name,
-      label: `${name} Luck`,
-      gain: `+${formatNumber(gain, 2)}×`,
-      perf,
-      affectsRolls: true,
-    });
-  }
-
-  candidates.sort((a, b) => a.perf.time - b.perf.time);
-  return candidates.map((candidate) => {
-    const savedTime = Number.isFinite(basePerf.time) && Number.isFinite(candidate.perf.time)
-      ? Math.max(0, basePerf.time - candidate.perf.time)
-      : Infinity;
-    const savedRolls = Number.isFinite(basePerf.rolls) && Number.isFinite(candidate.perf.rolls)
-      ? Math.max(0, basePerf.rolls - candidate.perf.rolls)
-      : Infinity;
-    return { ...candidate, savedTime, savedRolls };
-  });
+function makeBorderChip(name) {
+  const chip = document.createElement("span");
+  chip.className = `target-chip ${name.toLowerCase()}`;
+  chip.textContent = name;
+  return chip;
 }
 
-function renderOptimizer(baseStats, basePerf) {
-  els.upgradeResults.replaceChildren();
+function getAllCombinations(stats) {
+  const names = Object.keys(BORDERS);
+  const combinations = [];
 
-  if (!selected.size) {
-    const empty = document.createElement("div");
-    empty.className = "optimizer-empty";
-    empty.textContent = "Select a border goal first.";
-    els.upgradeResults.append(empty);
-    return;
-  }
-
-  const candidates = candidateUpgradeResults(baseStats, basePerf);
-  if (!candidates.length) {
-    const empty = document.createElement("div");
-    empty.className = "optimizer-empty";
-    empty.textContent = "Enter at least one test increase above.";
-    els.upgradeResults.append(empty);
-    return;
-  }
-
-  candidates.forEach((candidate, index) => {
-    const row = document.createElement("article");
-    row.className = `upgrade-result ${candidate.key.toLowerCase()}`;
-
-    const rank = document.createElement("div");
-    rank.className = "upgrade-rank";
-    rank.textContent = index === 0 ? "BEST" : `#${index + 1}`;
-
-    const name = document.createElement("div");
-    name.className = "upgrade-name";
-    const strong = document.createElement("strong");
-    strong.textContent = candidate.label;
-    const gain = document.createElement("span");
-    gain.textContent = candidate.gain;
-    name.append(strong, gain);
-
-    const newTime = document.createElement("div");
-    newTime.className = "upgrade-metric";
-    newTime.innerHTML = `<span>New avg time</span><strong>${formatTime(candidate.perf.time)}</strong>`;
-
-    const saved = document.createElement("div");
-    saved.className = "upgrade-metric";
-    if (candidate.savedTime === Infinity) {
-      saved.innerHTML = `<span>Improvement</span><strong>Makes target possible</strong>`;
-    } else if (candidate.affectsRolls) {
-      saved.innerHTML = `<span>Rolls saved</span><strong>${formatNumber(candidate.savedRolls, 0)}</strong>`;
-    } else {
-      saved.innerHTML = `<span>Time saved</span><strong>${formatTime(candidate.savedTime)}</strong>`;
+  for (let mask = 1; mask < (1 << names.length); mask += 1) {
+    const combo = [];
+    for (let i = 0; i < names.length; i += 1) {
+      if (mask & (1 << i)) combo.push(names[i]);
     }
 
-    row.append(rank, name, newTime, saved);
-    els.upgradeResults.append(row);
+    const rate = combinationRate(combo, stats);
+    if (rate > 0) combinations.push({ names: combo, rate });
+  }
+
+  combinations.sort((a, b) => {
+    if (a.names.length !== b.names.length) return a.names.length - b.names.length;
+    return b.rate - a.rate;
   });
+
+  return combinations;
+}
+
+function chanceAtLeastOnce(perRollRate, rolls) {
+  if (rolls <= 0 || perRollRate <= 0) return 0;
+  if (perRollRate >= 1) return 1;
+  const exponent = rolls * Math.log1p(-perRollRate);
+  if (exponent < -745) return 1;
+  return -Math.expm1(exponent);
+}
+
+function timeSpanSeconds() {
+  const value = readNumber(els.timeValue, 0, 0);
+  return value * TIME_UNITS[els.timeUnit.value];
+}
+
+function renderTimeSpan(stats) {
+  const rolls = Math.max(0, Math.floor(timeSpanSeconds() * rollsPerSecond(stats)));
+  els.timeRolls.textContent = formatNumber(rolls, 0);
+  els.borderChanceResults.replaceChildren();
+
+  if (rolls <= 0) {
+    const empty = document.createElement("div");
+    empty.className = "chance-empty";
+    empty.textContent = "No rolls in this span";
+    els.borderChanceResults.append(empty);
+    return;
+  }
+
+  const combinations = getAllCombinations(stats);
+  if (!combinations.length) {
+    const empty = document.createElement("div");
+    empty.className = "chance-empty";
+    empty.textContent = "No possible border hits";
+    els.borderChanceResults.append(empty);
+    return;
+  }
+
+  for (const combo of combinations) {
+    const item = document.createElement("article");
+    item.className = "chance-item";
+
+    const chips = document.createElement("div");
+    chips.className = "chance-chips";
+    for (const name of combo.names) chips.append(makeBorderChip(name));
+
+    const chance = document.createElement("strong");
+    chance.className = "chance-value";
+    chance.textContent = formatPercent(chanceAtLeastOnce(combo.rate, rolls));
+
+    item.append(chips, chance);
+    els.borderChanceResults.append(item);
+  }
 }
 
 function render() {
   const stats = getStats();
   const perf = performance(stats);
-  updateTargetUI();
 
+  updateTargetUI();
   els.averageRolls.textContent = selected.size ? formatNumber(perf.rolls, perf.rolls < 100 ? 2 : 0) : "—";
   els.averageTime.textContent = selected.size ? formatTime(perf.time) : "—";
-  els.rollInterval.textContent = `${trimFixed(perf.interval, 4)}s`;
   els.cardsPerSecond.textContent = trimFixed(perf.cardsPerSecond, perf.cardsPerSecond < 10 ? 2 : 1);
   els.rollsPerHour.textContent = formatNumber(perf.rollsPerHour, 0);
-  renderOptimizer(stats, perf);
+  renderTimeSpan(stats);
 }
 
 function reset() {
@@ -270,12 +260,13 @@ function reset() {
   els.rollSpeed.value = "100";
   els.speedStructure.value = "0";
   els.timeStorm.checked = false;
-  els.gainRollSpeed.value = "10";
+  els.timeValue.value = "1";
+  els.timeUnit.value = "hour";
 
   for (const border of Object.values(BORDERS)) {
     $(border.luckId).value = "1";
-    $(border.gainId).value = "1";
   }
+
   render();
 }
 
@@ -288,13 +279,17 @@ document.querySelectorAll(".border-tab").forEach((button) => {
   });
 });
 
-const reactiveIds = [
-  "rollSpeed", "speedStructure", "timeStorm",
-  "platinumLuck", "crystalLuck", "rubyLuck", "galaxyLuck",
-  "gainRollSpeed", "gainPlatinum", "gainCrystal", "gainRuby", "gainGalaxy",
-];
-
-for (const id of reactiveIds) {
+for (const id of [
+  "rollSpeed",
+  "speedStructure",
+  "timeStorm",
+  "platinumLuck",
+  "crystalLuck",
+  "rubyLuck",
+  "galaxyLuck",
+  "timeValue",
+  "timeUnit",
+]) {
   const element = $(id);
   element.addEventListener("input", render);
   element.addEventListener("change", render);
