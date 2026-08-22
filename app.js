@@ -21,7 +21,6 @@ const els = {
   rollInterval: $("rollInterval"),
   cardsPerSecond: $("cardsPerSecond"),
   rollsPerHour: $("rollsPerHour"),
-  speedBreakdown: $("speedBreakdown"),
   gainRollSpeed: $("gainRollSpeed"),
   upgradeResults: $("upgradeResults"),
 };
@@ -92,15 +91,7 @@ function timeStormMultiplier() {
 }
 
 function rollsPerSecond(stats) {
-  // The profile's displayed Roll Speed already contains potion/charm/skill-tree/relic speed modifiers.
-  // Speed Structure is separate: Boost("Speed", level) = 50 * level / 7 percent,
-  // which multiplies rolling rate by 1 + boost/100. Time Storm doubles it again.
   return (stats.rollSpeed / 100) * speedStructureMultiplier() * timeStormMultiplier();
-}
-
-function rollInterval(stats) {
-  const rate = rollsPerSecond(stats);
-  return rate > 0 ? BASE_COOLDOWN_SECONDS / rate : Infinity;
 }
 
 function borderRate(name, stats) {
@@ -117,7 +108,7 @@ function stackedRate(stats) {
 function performance(stats) {
   const rate = stackedRate(stats);
   const cardsPerSecond = rollsPerSecond(stats);
-  const interval = cardsPerSecond > 0 ? 1 / cardsPerSecond : Infinity;
+  const interval = cardsPerSecond > 0 ? BASE_COOLDOWN_SECONDS / cardsPerSecond : Infinity;
   const rolls = rate > 0 ? 1 / rate : Infinity;
   const time = rolls * interval;
   return {
@@ -161,14 +152,6 @@ function updateTargetUI() {
     chip.textContent = name;
     els.selectedBorders.append(chip);
   }
-}
-
-function buildSpeedBreakdown(stats, perf) {
-  const structure = speedStructureMultiplier();
-  const pieces = [`${formatNumber(stats.rollSpeed, 2)}% displayed`];
-  if (structure > 1) pieces.push(`Structure ×${trimFixed(structure, 3)}`);
-  if (els.timeStorm.checked) pieces.push("Time Storm ×2");
-  els.speedBreakdown.textContent = `${pieces.join(" · ")} = ${trimFixed(perf.cardsPerSecond, 2)} cards/s`;
 }
 
 function candidateUpgradeResults(baseStats, basePerf) {
@@ -278,7 +261,6 @@ function render() {
   els.rollInterval.textContent = `${trimFixed(perf.interval, 4)}s`;
   els.cardsPerSecond.textContent = trimFixed(perf.cardsPerSecond, perf.cardsPerSecond < 10 ? 2 : 1);
   els.rollsPerHour.textContent = formatNumber(perf.rollsPerHour, 0);
-  buildSpeedBreakdown(stats, perf);
   renderOptimizer(stats, perf);
 }
 
