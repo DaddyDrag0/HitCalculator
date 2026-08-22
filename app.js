@@ -78,16 +78,17 @@ function formatTime(seconds) {
   return parts.slice(0, 3).join(" ") || "0s";
 }
 
-function formatPercent(probability) {
+function formatChance(probability) {
   if (!Number.isFinite(probability) || probability <= 0) return "0%";
   if (probability >= 1 - 1e-12) return "100%";
 
   const percent = probability * 100;
+  if (percent < 1) {
+    return `1 / ${formatNumber(1 / probability, 2)}`;
+  }
+
   if (percent >= 10) return `${trimFixed(percent, 1)}%`;
-  if (percent >= 1) return `${trimFixed(percent, 2)}%`;
-  if (percent >= 0.01) return `${trimFixed(percent, 3)}%`;
-  if (percent >= 0.0001) return `${trimFixed(percent, 5)}%`;
-  return `${percent.toExponential(2)}%`;
+  return `${trimFixed(percent, 2)}%`;
 }
 
 function getStats() {
@@ -235,7 +236,7 @@ function renderTimeSpan(stats) {
 
     const chance = document.createElement("strong");
     chance.className = "chance-value";
-    chance.textContent = formatPercent(chanceAtLeastOnce(combo.rate, rolls));
+    chance.textContent = formatChance(chanceAtLeastOnce(combo.rate, rolls));
 
     item.append(chips, chance);
     els.borderChanceResults.append(item);
