@@ -19,6 +19,7 @@ const els = {
   averageRolls: $("averageRolls"),
   averageTime: $("averageTime"),
   rollInterval: $("rollInterval"),
+  cardsPerSecond: $("cardsPerSecond"),
   rollsPerHour: $("rollsPerHour"),
   speedBreakdown: $("speedBreakdown"),
   gainRollSpeed: $("gainRollSpeed"),
@@ -81,21 +82,25 @@ function getStats(overrides = {}) {
   return Object.assign(stats, overrides);
 }
 
-function speedStructureBoostPercent() {
+function speedStructureMultiplier() {
   const level = Math.max(0, Math.min(7, Number(els.speedStructure.value) || 0));
-  return 50 * level / 7;
+  return 1 + (0.5 * level / 7);
+}
+
+function timeStormMultiplier() {
+  return els.timeStorm.checked ? 2 : 1;
+}
+
+function rollsPerSecond(stats) {
+  // The profile's displayed Roll Speed already contains potion/charm/skill-tree/relic speed modifiers.
+  // Speed Structure is separate: Boost("Speed", level) = 50 * level / 7 percent,
+  // which multiplies rolling rate by 1 + boost/100. Time Storm doubles it again.
+  return (stats.rollSpeed / 100) * speedStructureMultiplier() * timeStormMultiplier();
 }
 
 function rollInterval(stats) {
-  // Expansion RNG.GetCooldown:
-  // cooldownFactor / (RollSpeed / 100)
-  // Speed Structure divides cooldown by (1 + structure boost / 100).
-  // Time Storm divides the cooldown by 2 again.
-  let cooldownFactor = BASE_COOLDOWN_SECONDS;
-  const structureBoost = speedStructureBoostPercent();
-  if (structureBoost > 0) cooldownFactor /= 1 + structureBoost / 100;
-  if (els.timeStorm.checked) cooldownFactor /= 2;
-  return cooldownFactor / (stats.rollSpeed / 100);
+  const rate = rollsPerSecond(stats);
+  return rate > 0 ? BASE_COOLDOWN_SECONDS / rate : Infinity;
 }
 
 function borderRate(name, stats) {
@@ -111,10 +116,18 @@ function stackedRate(stats) {
 
 function performance(stats) {
   const rate = stackedRate(stats);
-  const interval = rollInterval(stats);
+  const cardsPerSecond = rollsPerSecond(stats);
+  const interval = cardsPerSecond > 0 ? 1 / cardsPerSecond : Infinity;
   const rolls = rate > 0 ? 1 / rate : Infinity;
   const time = rolls * interval;
-  return { rate, interval, rolls, time, rollsPerHour: 3600 / interval };
+  return {
+    rate,
+    interval,
+    rolls,
+    time,
+    cardsPerSecond,
+    rollsPerHour: cardsPerSecond * 3600,
+  };
 }
 
 function updateTargetUI() {
@@ -151,11 +164,11 @@ function updateTargetUI() {
 }
 
 function buildSpeedBreakdown(stats, perf) {
-  const pieces = [`${formatNumber(stats.rollSpeed, 2)}% Roll Speed`];
-  const level = Number(els.speedStructure.value) || 0;
-  if (level > 0) pieces.push(`Speed Structure L${level}`);
-  if (els.timeStorm.checked) pieces.push("Time Storm");
-  els.speedBreakdown.textContent = `${pieces.join(" · ")} → ${trimFixed(perf.interval, 4)}s per roll`;
+  const structure = speedStructureMultiplier();
+  const pieces = [`${formatNumber(stats.rollSpeed, 2)}% displayed`];
+  if (structure > 1) pieces.push(`Structure ×${trimFixed(structure, 3)}`);
+  if (els.timeStorm.checked) pieces.push("Time Storm ×2");
+  els.speedBreakdown.textContent = `${pieces.join(" · ")} = ${trimFixed(perf.cardsPerSecond, 2)} cards/s`;
 }
 
 function candidateUpgradeResults(baseStats, basePerf) {
@@ -263,6 +276,7 @@ function render() {
   els.averageRolls.textContent = selected.size ? formatNumber(perf.rolls, perf.rolls < 100 ? 2 : 0) : "—";
   els.averageTime.textContent = selected.size ? formatTime(perf.time) : "—";
   els.rollInterval.textContent = `${trimFixed(perf.interval, 4)}s`;
+  els.cardsPerSecond.textContent = trimFixed(perf.cardsPerSecond, perf.cardsPerSecond < 10 ? 2 : 1);
   els.rollsPerHour.textContent = formatNumber(perf.rollsPerHour, 0);
   buildSpeedBreakdown(stats, perf);
   renderOptimizer(stats, perf);
@@ -276,7 +290,7 @@ function reset() {
   els.timeStorm.checked = false;
   els.gainRollSpeed.value = "10";
 
-  for (const [name, border] of Object.entries(BORDERS)) {
+  for (const border of Object.values(BORDERS)) {
     $(border.luckId).value = "1";
     $(border.gainId).value = "1";
   }
