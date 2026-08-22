@@ -23,7 +23,7 @@
         <div class="section-head">
           <div>
             <div class="section-title">Current stats</div>
-            <p>Use the values shown on your in-game profile.</p>
+            <p>Use the values shown on your in-game profile. Potion, charm, skill-tree, and relic Roll Speed boosts are already included in that displayed Roll Speed.</p>
           </div>
         </div>
 
@@ -36,14 +36,14 @@
           <label class="stat-field">
             <span>Speed Structure</span>
             <select id="speedStructure">
-              <option value="0">Level 0</option>
-              <option value="1">Level 1</option>
-              <option value="2">Level 2</option>
-              <option value="3">Level 3</option>
-              <option value="4">Level 4</option>
-              <option value="5">Level 5</option>
-              <option value="6">Level 6</option>
-              <option value="7">Level 7</option>
+              <option value="0">Level 0 · ×1.000</option>
+              <option value="1">Level 1 · ×1.071</option>
+              <option value="2">Level 2 · ×1.143</option>
+              <option value="3">Level 3 · ×1.214</option>
+              <option value="4">Level 4 · ×1.286</option>
+              <option value="5">Level 5 · ×1.357</option>
+              <option value="6">Level 6 · ×1.429</option>
+              <option value="7">Level 7 · ×1.500</option>
             </select>
           </label>
 
@@ -67,7 +67,7 @@
 
         <label class="check-row">
           <input id="timeStorm" type="checkbox" />
-          <span><strong>Time Storm active</strong><small>Halves the final roll cooldown in the Expansion RNG source.</small></span>
+          <span><strong>Time Storm active</strong><small>Acts as another ×2 rolling-rate multiplier.</small></span>
         </label>
 
         <div class="divider"></div>
@@ -92,6 +92,7 @@
 
         <div class="secondary-results">
           <div><span>Roll interval</span><strong id="rollInterval">1s</strong></div>
+          <div><span>Cards / second</span><strong id="cardsPerSecond">1</strong></div>
           <div><span>Rolls / hour</span><strong id="rollsPerHour">3.6K</strong></div>
         </div>
 
@@ -120,7 +121,7 @@
     </section>
 
     <footer>
-      Expansion source formula: cooldown = 1 / (Roll Speed / 100). Speed Structure and Time Storm modify that cooldown separately. No 0.3s cap is used.
+      Roll rate = (displayed Roll Speed / 100) × Speed Structure multiplier. Time Storm adds another ×2. Level 7 Speed Structure = ×1.5.
     </footer>
   </main>
   <script src="app.js"></script>
