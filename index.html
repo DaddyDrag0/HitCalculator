@@ -348,16 +348,11 @@
     formatChance = function(hitValue) {
       if (!Number.isFinite(hitValue) || hitValue <= 0) return "0%";
 
-      if (hitValue >= 1) {
-        const whole = Math.floor(hitValue);
-        const remainder = (hitValue - whole) * 100;
-        if (remainder < 0.005) return `${formatNumber(whole)}×`;
-        const digits = remainder >= 10 ? 1 : 2;
-        return `${formatNumber(whole)}× + ${trimFixed(remainder, digits)}%`;
-      }
+      const rawPercent = hitValue * 100;
+      if (rawPercent < 1) return `1 / ${formatNumber(1 / hitValue, 2)}`;
 
-      const percent = hitValue * 100;
-      if (percent < 1) return `1 / ${formatNumber(1 / hitValue, 2)}`;
+      const percent = Math.min(2000, rawPercent);
+      if (percent >= 2000) return "2000%";
       if (percent >= 10) return `${trimFixed(percent, 1)}%`;
       return `${trimFixed(percent, 2)}%`;
     };
