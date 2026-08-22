@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0d12" />
-  <title>Border Calculator — Card RNG: Expansion</title>
+  <title>Stat Optimizer — Card RNG: Expansion</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,105 +12,116 @@
     <header class="topbar">
       <div>
         <div class="game-name">CARD RNG: EXPANSION</div>
-        <h1>Border Calculator</h1>
-        <p>Estimate the rolls and time needed to hit your selected border combination.</p>
+        <h1>Stat Optimizer</h1>
+        <p>Enter your profile stats, choose the borders you care about, then compare which stat upgrade helps the most.</p>
       </div>
       <button id="resetBtn" class="reset-btn" type="button">Reset</button>
     </header>
 
-    <section class="calculator">
-      <div class="setup-card card">
-        <div class="section-block">
-          <div class="section-title">Borders you want</div>
-          <div class="border-tabs" aria-label="Target borders">
-            <button class="border-tab platinum active" type="button" data-border="Platinum" aria-pressed="true">
-              <span class="border-dot"></span>
-              <strong>Platinum</strong>
-              <span class="checkmark">✓</span>
-            </button>
-            <button class="border-tab crystal" type="button" data-border="Crystal" aria-pressed="false">
-              <span class="border-dot"></span>
-              <strong>Crystal</strong>
-              <span class="checkmark">✓</span>
-            </button>
-            <button class="border-tab ruby" type="button" data-border="Ruby" aria-pressed="false">
-              <span class="border-dot"></span>
-              <strong>Ruby</strong>
-              <span class="checkmark">✓</span>
-            </button>
-            <button class="border-tab galaxy" type="button" data-border="Galaxy" aria-pressed="false">
-              <span class="border-dot"></span>
-              <strong>Galaxy</strong>
-              <span class="checkmark">✓</span>
-            </button>
+    <section class="main-grid">
+      <div class="card setup-card">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Current stats</div>
+            <p>Use the values shown on your in-game profile.</p>
           </div>
         </div>
 
-        <div class="divider"></div>
+        <div class="stats-grid">
+          <label class="stat-field speed-field">
+            <span>Roll Speed</span>
+            <div class="input-wrap"><input id="rollSpeed" type="number" inputmode="decimal" min="0.01" step="any" value="100" /><b>%</b></div>
+          </label>
 
-        <div class="section-block">
-          <div class="section-title">Border luck</div>
-          <div class="luck-grid">
-            <label class="luck-field platinum-luck" data-luck-border="Platinum">
-              <span>Platinum Luck</span>
-              <div class="input-wrap"><input id="platinumLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
-            </label>
-            <label class="luck-field crystal-luck" data-luck-border="Crystal">
-              <span>Crystal Luck</span>
-              <div class="input-wrap"><input id="crystalLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
-            </label>
-            <label class="luck-field ruby-luck" data-luck-border="Ruby">
-              <span>Ruby Luck</span>
-              <div class="input-wrap"><input id="rubyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
-            </label>
-            <label class="luck-field galaxy-luck" data-luck-border="Galaxy">
-              <span>Galaxy Luck</span>
-              <div class="input-wrap"><input id="galaxyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
-            </label>
-          </div>
+          <label class="stat-field">
+            <span>Speed Structure</span>
+            <select id="speedStructure">
+              <option value="0">Level 0</option>
+              <option value="1">Level 1</option>
+              <option value="2">Level 2</option>
+              <option value="3">Level 3</option>
+              <option value="4">Level 4</option>
+              <option value="5">Level 5</option>
+              <option value="6">Level 6</option>
+              <option value="7">Level 7</option>
+            </select>
+          </label>
+
+          <label class="stat-field platinum-field" data-stat-border="Platinum">
+            <span>Platinum Luck</span>
+            <div class="input-wrap"><input id="platinumLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+          <label class="stat-field crystal-field" data-stat-border="Crystal">
+            <span>Crystal Luck</span>
+            <div class="input-wrap"><input id="crystalLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+          <label class="stat-field ruby-field" data-stat-border="Ruby">
+            <span>Ruby Luck</span>
+            <div class="input-wrap"><input id="rubyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+          <label class="stat-field galaxy-field" data-stat-border="Galaxy">
+            <span>Galaxy Luck</span>
+            <div class="input-wrap"><input id="galaxyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
         </div>
 
-        <div class="divider"></div>
-
-        <label class="setting-field roll-speed-field">
-          <span>Roll Speed</span>
-          <div class="input-wrap"><input id="rollSpeed" type="number" inputmode="decimal" min="0.01" step="any" value="100" /><b>%</b></div>
+        <label class="check-row">
+          <input id="timeStorm" type="checkbox" />
+          <span><strong>Time Storm active</strong><small>Halves the final roll cooldown in the Expansion RNG source.</small></span>
         </label>
+
+        <div class="divider"></div>
+
+        <div class="section-title">Goal borders</div>
+        <div class="border-tabs" aria-label="Goal borders">
+          <button class="border-tab platinum active" type="button" data-border="Platinum" aria-pressed="true"><span class="border-dot"></span><strong>Platinum</strong><span class="checkmark">✓</span></button>
+          <button class="border-tab crystal" type="button" data-border="Crystal" aria-pressed="false"><span class="border-dot"></span><strong>Crystal</strong><span class="checkmark">✓</span></button>
+          <button class="border-tab ruby" type="button" data-border="Ruby" aria-pressed="false"><span class="border-dot"></span><strong>Ruby</strong><span class="checkmark">✓</span></button>
+          <button class="border-tab galaxy" type="button" data-border="Galaxy" aria-pressed="false"><span class="border-dot"></span><strong>Galaxy</strong><span class="checkmark">✓</span></button>
+        </div>
       </div>
 
-      <div class="result-card card">
-        <div class="result-top">
-          <span class="result-label">Selected target</span>
-          <div id="selectedBorders" class="selected-borders"></div>
-        </div>
+      <aside class="card result-card">
+        <div class="result-label">Current setup</div>
+        <div id="selectedBorders" class="selected-borders"></div>
 
         <div class="primary-results">
-          <div class="primary-stat">
-            <span>Average rolls</span>
-            <strong id="averageRolls">100</strong>
-          </div>
-          <div class="primary-stat">
-            <span>Average time</span>
-            <strong id="averageTime">2m 30s</strong>
-          </div>
+          <div class="primary-stat"><span>Average rolls</span><strong id="averageRolls">100</strong></div>
+          <div class="primary-stat"><span>Average time</span><strong id="averageTime">1m 40s</strong></div>
         </div>
 
         <div class="secondary-results">
-          <div>
-            <span>Roll interval</span>
-            <strong id="rollInterval">1.5s</strong>
-          </div>
-          <div>
-            <span>Rolls / hour</span>
-            <strong id="rollsPerHour">2,400</strong>
-          </div>
+          <div><span>Roll interval</span><strong id="rollInterval">1s</strong></div>
+          <div><span>Rolls / hour</span><strong id="rollsPerHour">3.6K</strong></div>
         </div>
 
-        <div class="speed-note" id="speedNote"></div>
-      </div>
+        <div id="speedBreakdown" class="source-note"></div>
+      </aside>
     </section>
 
-    <footer>Roll Speed currently uses 1.5s at 100%, with a 0.3s minimum.</footer>
+    <section class="card optimizer-card">
+      <div class="optimizer-head">
+        <div>
+          <div class="section-title">Compare upgrades</div>
+          <h2>What should you improve?</h2>
+          <p>Enter how much each possible upgrade would add. The list ranks them by the average time they save for your selected border goal.</p>
+        </div>
+      </div>
+
+      <div class="upgrade-inputs">
+        <label class="upgrade-field"><span>Roll Speed</span><div class="input-wrap"><b class="prefix">+</b><input id="gainRollSpeed" type="number" inputmode="decimal" min="0" step="any" value="10" /><b>%</b></div></label>
+        <label class="upgrade-field platinum-field" data-upgrade-border="Platinum"><span>Platinum Luck</span><div class="input-wrap"><b class="prefix">+</b><input id="gainPlatinum" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div></label>
+        <label class="upgrade-field crystal-field" data-upgrade-border="Crystal"><span>Crystal Luck</span><div class="input-wrap"><b class="prefix">+</b><input id="gainCrystal" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div></label>
+        <label class="upgrade-field ruby-field" data-upgrade-border="Ruby"><span>Ruby Luck</span><div class="input-wrap"><b class="prefix">+</b><input id="gainRuby" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div></label>
+        <label class="upgrade-field galaxy-field" data-upgrade-border="Galaxy"><span>Galaxy Luck</span><div class="input-wrap"><b class="prefix">+</b><input id="gainGalaxy" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div></label>
+      </div>
+
+      <div id="upgradeResults" class="upgrade-results"></div>
+    </section>
+
+    <footer>
+      Expansion source formula: cooldown = 1 / (Roll Speed / 100). Speed Structure and Time Storm modify that cooldown separately. No 0.3s cap is used.
+    </footer>
   </main>
   <script src="app.js"></script>
 </body>
