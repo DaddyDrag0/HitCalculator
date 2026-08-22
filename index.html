@@ -7,6 +7,7 @@
   <title>Hit Calc</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
+    .result-card { position: static; top: auto; }
     .time-view-input {
       position: absolute;
       width: 1px;
@@ -193,5 +194,30 @@
   </main>
 
   <script src="app.js"></script>
+  <script>
+    chanceAtLeastOnce = function(perRollRate, rolls) {
+      if (!Number.isFinite(perRollRate) || !Number.isFinite(rolls) || perRollRate <= 0 || rolls <= 0) return 0;
+      return perRollRate * rolls;
+    };
+
+    formatChance = function(hitValue) {
+      if (!Number.isFinite(hitValue) || hitValue <= 0) return "0%";
+
+      if (hitValue >= 1) {
+        const whole = Math.floor(hitValue);
+        const remainder = (hitValue - whole) * 100;
+        if (remainder < 0.005) return `${formatNumber(whole)}×`;
+        const digits = remainder >= 10 ? 1 : 2;
+        return `${formatNumber(whole)}× + ${trimFixed(remainder, digits)}%`;
+      }
+
+      const percent = hitValue * 100;
+      if (percent < 1) return `1 / ${formatNumber(1 / hitValue, 2)}`;
+      if (percent >= 10) return `${trimFixed(percent, 1)}%`;
+      return `${trimFixed(percent, 2)}%`;
+    };
+
+    render();
+  </script>
 </body>
 </html>
