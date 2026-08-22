@@ -6,6 +6,51 @@
   <meta name="theme-color" content="#0b0d12" />
   <title>Hit Calc</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .time-view-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .time-tabs {
+      display: inline-flex;
+      gap: 4px;
+      margin-top: 18px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--panel-2);
+    }
+    .time-tab {
+      min-width: 112px;
+      padding: 8px 14px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .time-tab:hover { color: var(--text); }
+    #timeViewBorders:checked ~ .time-tabs label[for="timeViewBorders"],
+    #timeViewCards:checked ~ .time-tabs label[for="timeViewCards"] {
+      border-color: var(--line-2);
+      background: #171b22;
+      color: #fff;
+    }
+    .time-panel { display: none; }
+    #timeViewBorders:checked ~ .border-time-panel,
+    #timeViewCards:checked ~ .card-time-panel { display: block; }
+    .time-panel .chance-results { margin-top: 12px; }
+    @media (max-width: 520px) {
+      .time-tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      .time-tab { min-width: 0; }
+    }
+  </style>
 </head>
 <body>
   <main class="page">
@@ -114,6 +159,9 @@
     </section>
 
     <section class="card time-card">
+      <input class="time-view-input" type="radio" name="timeView" id="timeViewBorders" checked />
+      <input class="time-view-input" type="radio" name="timeView" id="timeViewCards" />
+
       <div class="time-head">
         <div class="section-title">Time span</div>
         <div class="time-controls">
@@ -129,11 +177,18 @@
         </div>
       </div>
 
-      <div class="time-section-title">Borders</div>
-      <div id="borderChanceResults" class="chance-results"></div>
+      <div class="time-tabs" role="tablist" aria-label="Time span results">
+        <label class="time-tab" for="timeViewBorders" role="tab">Borders</label>
+        <label class="time-tab" for="timeViewCards" role="tab">Card Rarity</label>
+      </div>
 
-      <div class="time-section-title card-time-title">Card rarity</div>
-      <div id="cardChanceResults" class="chance-results rarity-results"></div>
+      <div class="time-panel border-time-panel">
+        <div id="borderChanceResults" class="chance-results"></div>
+      </div>
+
+      <div class="time-panel card-time-panel">
+        <div id="cardChanceResults" class="chance-results rarity-results"></div>
+      </div>
     </section>
   </main>
 
