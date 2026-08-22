@@ -13,6 +13,7 @@ const TIME_UNITS = {
   week: 604_800,
 };
 
+const STORAGE_KEY = "hitCalcStatsV1";
 const NUMBER_SUFFIXES = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
 const $ = (id) => document.getElementById(id);
 
@@ -33,6 +34,34 @@ const els = {
 };
 
 const selected = new Set(["Platinum"]);
+
+function loadSavedStats() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+
+    for (const id of ["rollSpeed", "speedStructure", "platinumLuck", "crystalLuck", "rubyLuck", "galaxyLuck"]) {
+      if (saved[id] !== undefined && saved[id] !== null) $(id).value = String(saved[id]);
+    }
+
+    if (typeof saved.timeStorm === "boolean") els.timeStorm.checked = saved.timeStorm;
+  } catch {}
+}
+
+function saveStats() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      rollSpeed: els.rollSpeed.value,
+      speedStructure: els.speedStructure.value,
+      timeStorm: els.timeStorm.checked,
+      platinumLuck: $("platinumLuck").value,
+      crystalLuck: $("crystalLuck").value,
+      rubyLuck: $("rubyLuck").value,
+      galaxyLuck: $("galaxyLuck").value,
+    }));
+  } catch {}
+}
 
 function readNumber(input, fallback = 0, min = -Infinity) {
   const value = Number(input.value);
@@ -268,6 +297,7 @@ function reset() {
     $(border.luckId).value = "1";
   }
 
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
   render();
 }
 
@@ -288,13 +318,22 @@ for (const id of [
   "crystalLuck",
   "rubyLuck",
   "galaxyLuck",
-  "timeValue",
-  "timeUnit",
 ]) {
+  const element = $(id);
+  const update = () => {
+    saveStats();
+    render();
+  };
+  element.addEventListener("input", update);
+  element.addEventListener("change", update);
+}
+
+for (const id of ["timeValue", "timeUnit"]) {
   const element = $(id);
   element.addEventListener("input", render);
   element.addEventListener("change", render);
 }
 
 els.resetBtn.addEventListener("click", reset);
+loadSavedStats();
 render();
