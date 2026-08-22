@@ -4,8 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0d12" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Hit Calc</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20260822-1413" />
+  <script>
+    (() => {
+      const version = "20260822-1413";
+      const key = "hitCalcBuild";
+      try {
+        if (localStorage.getItem(key) !== version) {
+          localStorage.setItem(key, version);
+          const url = new URL(window.location.href);
+          if (url.searchParams.get("v") !== version) {
+            url.searchParams.set("v", version);
+            window.location.replace(url.toString());
+          }
+        }
+      } catch {}
+    })();
+  </script>
   <style>
     .result-card { position: static; top: auto; }
     .time-view-input {
@@ -208,7 +227,7 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260822-1413"></script>
   <script>
     const bossPot = document.getElementById("bossPot");
     const luckySurge = document.getElementById("luckySurge");
