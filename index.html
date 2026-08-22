@@ -223,13 +223,34 @@
       { name: "Malik The Sovereign", rarity: 100000, expires: null, rollFactor: 1, boss: true },
       { name: "Chronus The Hoarder", rarity: 10000, expires: null, rollFactor: 1, boss: true }
     ];
+    const timeStormCards = [
+      { name: "Parallax", rarity: 1000000000, expires: null, rollFactor: 0.5, weather: "Time Storm" },
+      { name: "Cronus", rarity: 25000000, expires: null, rollFactor: 0.5, weather: "Time Storm" },
+      { name: "Typhon", rarity: 5000000, expires: null, rollFactor: 0.5, weather: "Time Storm" },
+      { name: "Sciron", rarity: 500000, expires: null, rollFactor: 0.5, weather: "Time Storm" },
+      { name: "Ixion", rarity: 100000, expires: null, rollFactor: 0.5, weather: "Time Storm" }
+    ];
 
     for (const bossCard of bossCards) {
       const existing = CARD_POOL.find((card) => card.name === bossCard.name);
       if (existing) existing.boss = true;
       else CARD_POOL.push(bossCard);
     }
+    for (const weatherCard of timeStormCards) {
+      const existing = CARD_POOL.find((card) => card.name === weatherCard.name);
+      if (existing) Object.assign(existing, weatherCard);
+      else CARD_POOL.push(weatherCard);
+    }
     CARD_POOL.sort((a, b) => b.rarity - a.rarity);
+
+    activeCards = function() {
+      const now = Date.now() / 1000;
+      return CARD_POOL.filter((card) => {
+        if (card.expires && card.expires <= now) return false;
+        if (card.weather === "Time Storm" && !els.timeStorm.checked) return false;
+        return true;
+      });
+    };
 
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
