@@ -10,7 +10,7 @@
 <body>
   <main class="page">
     <header class="topbar">
-      <h1>Border Calc</h1>
+      <h1>Hit Calc</h1>
       <button id="resetBtn" class="reset-btn" type="button">Reset</button>
     </header>
 
@@ -19,6 +19,11 @@
         <div class="section-title">Current stats</div>
 
         <div class="stats-grid">
+          <label class="stat-field luck-field">
+            <span>Luck</span>
+            <div class="input-wrap"><input id="luck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+
           <label class="stat-field speed-field">
             <span>Roll Speed</span>
             <div class="input-wrap"><input id="rollSpeed" type="number" inputmode="decimal" min="0.01" step="any" value="100" /><b>%</b></div>
@@ -70,15 +75,35 @@
           <button class="border-tab ruby" type="button" data-border="Ruby" aria-pressed="false"><span class="border-dot"></span><strong>Ruby</strong><span class="checkmark">✓</span></button>
           <button class="border-tab galaxy" type="button" data-border="Galaxy" aria-pressed="false"><span class="border-dot"></span><strong>Galaxy</strong><span class="checkmark">✓</span></button>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">Card rarity target</div>
+        <label class="rarity-target">
+          <span>Minimum rarity</span>
+          <div class="input-wrap"><input id="cardRarity" type="number" inputmode="decimal" min="1" step="any" value="1000000" /></div>
+        </label>
       </div>
 
       <aside class="card result-card">
-        <div class="result-label">Selected target</div>
-        <div id="selectedBorders" class="selected-borders"></div>
+        <div class="result-block">
+          <div class="result-label">Border target</div>
+          <div id="selectedBorders" class="selected-borders"></div>
+          <div class="primary-results">
+            <div class="primary-stat"><span>Average rolls</span><strong id="averageRolls">100</strong></div>
+            <div class="primary-stat"><span>Average time</span><strong id="averageTime">1m 40s</strong></div>
+          </div>
+        </div>
 
-        <div class="primary-results">
-          <div class="primary-stat"><span>Average rolls</span><strong id="averageRolls">100</strong></div>
-          <div class="primary-stat"><span>Average time</span><strong id="averageTime">1m 40s</strong></div>
+        <div class="result-divider"></div>
+
+        <div class="result-block">
+          <div class="result-label">Card target</div>
+          <div class="rarity-readout">≥ <strong id="cardTargetLabel">1M</strong></div>
+          <div class="primary-results">
+            <div class="primary-stat"><span>Average rolls</span><strong id="cardAverageRolls">—</strong></div>
+            <div class="primary-stat"><span>Average time</span><strong id="cardAverageTime">—</strong></div>
+          </div>
         </div>
 
         <div class="secondary-results">
@@ -104,7 +129,11 @@
         </div>
       </div>
 
+      <div class="time-section-title">Borders</div>
       <div id="borderChanceResults" class="chance-results"></div>
+
+      <div class="time-section-title card-time-title">Card rarity</div>
+      <div id="cardChanceResults" class="chance-results rarity-results"></div>
     </section>
   </main>
 
