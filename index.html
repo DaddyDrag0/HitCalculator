@@ -112,6 +112,11 @@
           <span><strong>Time Storm</strong></span>
         </label>
 
+        <label class="check-row">
+          <input id="bossPot" type="checkbox" />
+          <span><strong>Boss Pot</strong></span>
+        </label>
+
         <div class="divider"></div>
 
         <div class="section-title">Goal borders</div>
@@ -195,6 +200,73 @@
 
   <script src="app.js"></script>
   <script>
+    const bossPot = document.getElementById("bossPot");
+    const bossCards = [
+      { name: "Mother of Beasts", rarity: 5000000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Sable The Envious", rarity: 100000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Raze The Destroyer", rarity: 50000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Morpheus The Slumberer", rarity: 20000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Lilith The Enchantress", rarity: 5000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Gideon The Insatiable", rarity: 1000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Malik The Sovereign", rarity: 100000, expires: null, rollFactor: 1, boss: true },
+      { name: "Chronus The Hoarder", rarity: 10000, expires: null, rollFactor: 1, boss: true }
+    ];
+
+    for (const bossCard of bossCards) {
+      const existing = CARD_POOL.find((card) => card.name === bossCard.name);
+      if (existing) existing.boss = true;
+      else CARD_POOL.push(bossCard);
+    }
+    CARD_POOL.sort((a, b) => b.rarity - a.rarity);
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      if (typeof saved.bossPot === "boolean") bossPot.checked = saved.bossPot;
+    } catch {}
+
+    saveStats = function() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          luck: els.luck.value,
+          rollSpeed: els.rollSpeed.value,
+          speedStructure: els.speedStructure.value,
+          timeStorm: els.timeStorm.checked,
+          bossPot: bossPot.checked,
+          platinumLuck: $("platinumLuck").value,
+          crystalLuck: $("crystalLuck").value,
+          rubyLuck: $("rubyLuck").value,
+          galaxyLuck: $("galaxyLuck").value,
+          cardRarity: els.cardRarity.value
+        }));
+        localStorage.removeItem(OLD_STORAGE_KEY);
+      } catch {}
+    };
+
+    cardSelectionDistribution = function(stats) {
+      const cards = activeCards();
+      let remaining = 1;
+      const distribution = [];
+
+      for (const card of cards) {
+        const rollRarity = card.rarity * card.rollFactor;
+        const bossMultiplier = bossPot.checked && card.boss ? 5 : 1;
+        const success = Math.min(1, (stats.Luck * bossMultiplier) / rollRarity);
+        const probability = remaining * success;
+        if (probability > 0) distribution.push({ card, probability });
+        remaining *= 1 - success;
+        if (remaining <= 0) break;
+      }
+
+      if (remaining > 0 && cards.length) {
+        const fallback = cards[cards.length - 1];
+        const found = distribution.find((entry) => entry.card.name === fallback.name);
+        if (found) found.probability += remaining;
+        else distribution.push({ card: fallback, probability: remaining });
+      }
+
+      return distribution;
+    };
+
     chanceAtLeastOnce = function(perRollRate, rolls) {
       if (!Number.isFinite(perRollRate) || !Number.isFinite(rolls) || perRollRate <= 0 || rolls <= 0) return 0;
       return perRollRate * rolls;
@@ -216,6 +288,20 @@
       if (percent >= 10) return `${trimFixed(percent, 1)}%`;
       return `${trimFixed(percent, 2)}%`;
     };
+
+    bossPot.addEventListener("change", () => {
+      saveStats();
+      render();
+    });
+
+    els.resetBtn.addEventListener("click", () => {
+      bossPot.checked = false;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(OLD_STORAGE_KEY);
+      } catch {}
+      render();
+    });
 
     render();
   </script>
