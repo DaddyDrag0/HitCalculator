@@ -11,6 +11,7 @@
     const results = root.querySelector('.uv-results-row');
     const time = root.querySelector('.uv-time-panel');
     const targets = root.querySelector('.uv-tool-targets');
+    const modifiers = tools?.querySelector('.uv-tool-modifiers');
     if (!tree || !tools || !results || !time || !targets) return;
 
     const shell = document.createElement('section');
@@ -28,6 +29,11 @@
 
     tree.before(shell);
     shell.append(left, right);
+
+    if (modifiers) {
+      modifiers.classList.add('uv-pre-tree-modifiers');
+      left.append(modifiers);
+    }
     left.append(tree, tools);
     right.append(liveHead, targets, results, time);
 
@@ -77,6 +83,20 @@
       .uv-live-head strong{display:block;margin-top:2px;font-size:.88rem}
       .uv-live-head i{width:8px;height:8px;border-radius:50%;background:var(--luck);box-shadow:0 0 10px color-mix(in srgb,var(--luck) 70%,transparent)}
 
+      /* Modifiers live above the skill tree so temporary effects are easy to change first. */
+      .uv-pre-tree-modifiers{
+        grid-column:auto!important;
+        margin:0!important;
+        padding:14px 16px!important;
+      }
+      .uv-pre-tree-modifiers .uv-panel-title{margin-bottom:9px!important}
+      .uv-pre-tree-modifiers .uv-toggle-grid{
+        display:grid!important;
+        grid-template-columns:repeat(4,minmax(0,1fr))!important;
+        gap:7px!important;
+      }
+      .uv-pre-tree-modifiers .uv-toggle span{min-height:38px;padding:7px 8px}
+
       /* Targets become a compact right-side control panel. */
       .uv-sidebar-targets{
         display:block!important;
@@ -122,12 +142,44 @@
       .uv-sidebar-time .uv-chance>strong{font-size:.7rem}
       .uv-sidebar-time .uv-mini-chip{font-size:.53rem;padding:2px 5px}
 
+      /* Skill tree fully reflows inside the edit column instead of being clipped horizontally. */
+      .uv-builder-left .uv-tree-wrap{
+        min-width:0!important;
+        width:100%!important;
+        overflow:visible!important;
+        padding-bottom:0!important;
+      }
+      .uv-builder-left .uv-skill-tree-panel{min-width:0!important;overflow:visible!important}
+      .uv-builder-left .uv-skill-tree-grid{
+        display:grid!important;
+        grid-template-columns:repeat(4,minmax(0,1fr))!important;
+        min-width:0!important;
+        width:100%!important;
+        gap:10px!important;
+      }
+      .uv-builder-left .uv-tree-branch{min-width:0!important}
+      .uv-builder-left .uv-tree-node{grid-template-columns:34px minmax(0,1fr);gap:6px;padding:5px}
+      .uv-builder-left .uv-tree-orb{width:32px;height:32px}
+
       /* The left side is for editing, with more breathing room. */
-      .uv-builder-left .uv-tools-grid{grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
-      .uv-builder-left .uv-tool-account{grid-column:span 4}
-      .uv-builder-left .uv-tool-structures{grid-column:span 8}
-      .uv-builder-left .uv-tool-chaska-s-blessing{grid-column:1/-1}
+      .uv-builder-left .uv-tools-grid{grid-template-columns:repeat(12,minmax(0,1fr));gap:12px;min-width:0}
+      .uv-builder-left .uv-tool-account{grid-column:span 4;min-width:0}
+      .uv-builder-left .uv-tool-structures{grid-column:span 8;min-width:0}
+      .uv-builder-left .uv-tool-chaska-s-blessing{grid-column:1/-1;min-width:0}
       .uv-builder-left .uv-tool-modifiers{grid-column:1/-1}
+
+      /* Keep account inputs inside their card. */
+      .uv-builder-left .uv-tool-account .uv-big-field,
+      .uv-builder-left .uv-tool-account .uv-index-input-row{min-width:0;width:100%;box-sizing:border-box}
+      .uv-builder-left .uv-tool-account input,
+      .uv-builder-left .uv-tool-account select{
+        display:block;
+        width:100%!important;
+        max-width:100%!important;
+        min-width:0!important;
+        box-sizing:border-box!important;
+      }
+      .uv-builder-left .uv-tool-account .uv-index-input-row input{width:100%!important}
 
       /* Chaska: 2x2 instead of four cramped columns. */
       .uv-builder-left .uv-tool-chaska-s-blessing .uv-chaska-grid,
@@ -143,7 +195,7 @@
       .uv-builder-left .uv-chaska-stat-card>input{width:100%;min-width:0}
       .uv-builder-left .uv-chaska-controls{
         display:grid!important;
-        grid-template-columns:36px 36px minmax(52px,.72fr) minmax(72px,1fr)!important;
+        grid-template-columns:36px 36px minmax(52px,.72fr) minmax(78px,1fr)!important;
         gap:6px!important;
         width:100%;
         min-width:0;
@@ -155,10 +207,8 @@
         min-height:31px;
         padding:0 6px!important;
         white-space:nowrap;
-        overflow:hidden;
-        text-overflow:ellipsis;
       }
-      .uv-builder-left .uv-chaska-controls .refund{min-width:72px}
+      .uv-builder-left .uv-chaska-controls .refund{min-width:78px}
       .uv-builder-left .uv-chaska-dashboard{margin-bottom:13px}
       .uv-builder-left .uv-chaska-status{grid-template-columns:repeat(5,minmax(0,1fr))}
 
@@ -167,12 +217,20 @@
         .uv-sidebar-targets .uv-border-buttons{grid-template-columns:repeat(2,minmax(0,1fr))!important}
         .uv-sidebar-time .uv-chance-grid{grid-template-columns:1fr}
         .uv-builder-left .uv-tool-account,.uv-builder-left .uv-tool-structures{grid-column:1/-1}
+        .uv-builder-left .uv-skill-tree-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+        .uv-pre-tree-modifiers .uv-toggle-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
       }
       @media(max-width:900px){
         .uv-builder-shell{grid-template-columns:1fr}
         .uv-live-sidebar{position:static;max-height:none;overflow:visible;padding-right:0}
         .uv-sidebar-targets .uv-border-buttons{grid-template-columns:repeat(4,minmax(0,1fr))!important}
         .uv-sidebar-time .uv-chance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+        .uv-builder-left .uv-skill-tree-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+        .uv-pre-tree-modifiers .uv-toggle-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+      }
+      @media(max-width:700px){
+        .uv-builder-left .uv-skill-tree-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        .uv-pre-tree-modifiers .uv-toggle-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
       }
       @media(max-width:620px){
         .uv-builder-left .uv-tool-chaska-s-blessing .uv-chaska-grid,
@@ -180,6 +238,10 @@
         .uv-builder-left .uv-chaska-status{grid-template-columns:repeat(2,minmax(0,1fr))}
         .uv-sidebar-targets .uv-border-buttons{grid-template-columns:repeat(2,minmax(0,1fr))!important}
         .uv-sidebar-time .uv-chance-grid{grid-template-columns:1fr}
+      }
+      @media(max-width:470px){
+        .uv-builder-left .uv-skill-tree-grid{grid-template-columns:1fr!important}
+        .uv-pre-tree-modifiers .uv-toggle-grid{grid-template-columns:1fr 1fr!important}
       }
     `;
     document.head.append(style);
