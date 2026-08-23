@@ -1,1 +1,1 @@
-document.write('<script src="./app-base.js?rev=20260823-0954"><\/script><script src="./theme.js?rev=20260823-0954"><\/script><script src="./upgrade-v2.js?rev=20260823-0954"><\/script><script src="./upgrade-skilltree-v3.js?rev=20260823-0954"><\/script>');
+document.write('<script src="./app-base.js?rev=20260823-0954"><\/script><script src="./theme.js?rev=20260823-0954"><\/script><script src="./upgrade-v2.js?rev=20260823-0954"><\/script><script src="./upgrade-skilltree-v3.js?rev=20260823-0954"><\/script><script src="./chaska-tiers-v4.js?rev=20260823-0954"><\/script>');
