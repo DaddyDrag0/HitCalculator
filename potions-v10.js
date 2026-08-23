@@ -4,7 +4,8 @@
     ['uvPotSpeed3','Speed III','+300% Speed'],['uvPotLuck3','Luck III','+25 Luck'],
     ['uvPotLegendarySpeed','Legendary Speed','+500% Speed'],['uvPotLegendaryLuck','Legendary Luck','+40 Luck'],
     ['uvPotElixir','Elixir','×2 Luck'],['uvPotCursed','Cursed Potion','×1.5 Luck'],
-    ['uvPotEventSpeed','Event Speed','×1.25 Speed'],['uvPotEventLuck','Event Luck','×1.25 Luck']
+    ['uvPotEventSpeed','Event Speed','×1.25 Speed'],['uvPotEventLuck','Event Luck','×1.25 Luck'],
+    ['uvPotDivine','Divine Potion','×1.1 Final Borders']
   ];
   const B={Platinum:{d:100,m:100},Crystal:{d:1e4,m:1e4},Ruby:{d:1e5,m:1e5},Galaxy:{d:1e6,m:1e6}}, BN=Object.keys(B);
   const SK={Luck:[0,15,30,45,60,75,90,150],RollSpeed:[0,5,10,15,20,25,30,45],AllStat:[0,3,6,11],Platinum:[0,.5,1,1.5,2,2.5,5],Crystal:[0,1.75,3.5,5.25,7,8.75,14.75],Ruby:[0,1.5,3,4.5,6,7.5,13.5],Galaxy:[0,4,8,12,16,20,30]};
@@ -25,8 +26,8 @@
     let speed=100+(on('uvPotSpeed3')?300:0)+(on('uvPotLegendarySpeed')?500:0)+(charm.Cooldown||0);
     speed*=1+(s.RollSpeed+s.AllStat)/100;if(on('uvPotEventSpeed'))speed*=1.25;if(on('uvQuickdraw'))speed*=1.1;if(on('uvHeavyHand'))speed*=.9;
     const cb={Platinum:chaska(num('uvChaskaPlatinum'),.05),Crystal:chaska(num('uvChaskaCrystal'),.10),Ruby:0,Galaxy:chaska(num('uvChaskaGalaxy'),.25)}, be={};
-    const boost=on('uvBorderBoost')?1.5:1, all=1+s.AllStat/100;
-    for(const n of BN){let base=(1+(charm[n]||0)+s[n])*all;base*=sm(n,st[n]);be[n]=base*boost+cb[n]}
+    const boost=on('uvBorderBoost')?1.5:1, divine=on('uvPotDivine')?1.1:1, all=1+s.AllStat/100;
+    for(const n of BN){let base=(1+(charm[n]||0)+s[n])*all;base*=sm(n,st[n]);be[n]=(base*boost+cb[n])*divine}
     const timeStorm=on('uvTimeStorm'), cps=(speed/100)*sm('Speed',st.Speed)*(timeStorm?2:1);
     return {rolls,luck,speed,be,cps,timeStorm,boss:on('uvBossPot'),surge:on('uvLuckySurge'),dice:on('uvDice')};
   }
@@ -45,8 +46,9 @@
   const selected=()=>[...document.querySelectorAll('#upgradeCalcV2 .uv-border.active')].map(b=>b.dataset.border).filter(n=>B[n]);
   function chip(n){const s=document.createElement('span');s.className=`uv-mini-chip ${n.toLowerCase()}`;s.textContent=n;return s}
   function item(labels,val,rar=false){const d=document.createElement('div');d.className='uv-chance';const l=document.createElement('div');l.className='uv-chance-label';if(rar){const c=document.createElement('span');c.className='uv-mini-chip';c.textContent=labels;l.append(c)}else labels.forEach(n=>l.append(chip(n)));const st=document.createElement('strong');st.textContent=val;d.append(l,st);return d}
+  function syncBorderRibbon(s){const write=()=>{for(const n of BN){const el=$(`uvOut${n}`);if(el)el.textContent=`${fn(s.be[n],2)}×`}};write();requestAnimationFrame(write)}
   function render(){if(!$('upgradeCalcV2'))return;const s=stats(),d=distribution(s),o=borderOutcomes(s),sel=selected(),bRate=sel.length?cr(sel,s):0,bRoll=bRate>0?1/bRate:Infinity,target=Math.max(1,num('uvCardRarity',1e6)),cRate=tr(target,s,d,o),cRoll=cRate>0?1/cRate:Infinity;
-    if($('uvOutLuck'))$('uvOutLuck').textContent=fn(s.luck,2);if($('uvOutSpeed'))$('uvOutSpeed').textContent=`${fn(s.speed,2)}%`;if($('uvBorderRolls'))$('uvBorderRolls').textContent=fn(bRoll);if($('uvBorderTime'))$('uvBorderTime').textContent=ft(bRoll/s.cps);if($('uvCardRolls'))$('uvCardRolls').textContent=fn(cRoll);if($('uvCardTime'))$('uvCardTime').textContent=ft(cRoll/s.cps);if($('uvCardsSecond'))$('uvCardsSecond').textContent=fn(s.cps,2);if($('uvRollsHour'))$('uvRollsHour').textContent=fn(s.cps*3600);
+    if($('uvOutLuck'))$('uvOutLuck').textContent=fn(s.luck,2);if($('uvOutSpeed'))$('uvOutSpeed').textContent=`${fn(s.speed,2)}%`;syncBorderRibbon(s);if($('uvBorderRolls'))$('uvBorderRolls').textContent=fn(bRoll);if($('uvBorderTime'))$('uvBorderTime').textContent=ft(bRoll/s.cps);if($('uvCardRolls'))$('uvCardRolls').textContent=fn(cRoll);if($('uvCardTime'))$('uvCardTime').textContent=ft(cRoll/s.cps);if($('uvCardsSecond'))$('uvCardsSecond').textContent=fn(s.cps,2);if($('uvRollsHour'))$('uvRollsHour').textContent=fn(s.cps*3600);
     const secs=Math.max(0,num('uvTimeValue',1))*(TU[$('uvTimeUnit')?.value]||3600),rolls=Math.max(0,Math.floor(secs*s.cps));if($('uvTimeRolls'))$('uvTimeRolls').textContent=fn(rolls);
     const bg=$('uvBorderChanceGrid');if(bg){bg.replaceChildren();const combos=[];for(let mask=1;mask<16;mask++){const names=[];for(let i=0;i<4;i++)if(mask&(1<<i))names.push(BN[i]);combos.push({names,rate:cr(names,s)})}combos.sort((a,b)=>a.names.length-b.names.length||b.rate-a.rate);for(const x of combos)bg.append(item(x.names,fs(x.rate*rolls)))}
     const cg=$('uvCardChanceGrid');if(cg){cg.replaceChildren();for(const t of TH)cg.append(item(`≥ ${fn(t)}`,fs(tr(t,s,d,o)*rolls),true))}
