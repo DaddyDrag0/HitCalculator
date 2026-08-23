@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -23,6 +23,87 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply Default Scarlet and Slate themes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          version = '20260823-0954'
+
+          css_path = Path('styles.css')
+          css = css_path.read_text()
+          marker = '/* HIT CALC THEMES V1 */'
+          if marker not in css:
+              css += r'''
+
+/* HIT CALC THEMES V1 */
+:root{--input-bg:#080a0e;--active-bg:#171b22;--switch-accent:#78a8ff}
+html[data-theme="scarlet"]{--bg:#080406;--panel:#170a0f;--panel-2:#12070a;--line:#451c27;--line-2:#59222f;--text:#faeef1;--muted:#ad858e;--blue:#f03a55;--luck:#e98293;--input-bg:#100609;--active-bg:#251219;--switch-accent:#f03a55}
+html[data-theme="slate"]{--bg:#171b21;--panel:#222832;--panel-2:#1c222a;--line:#3a4451;--line-2:#4b5868;--text:#f3f5f7;--muted:#9ea9b6;--input-bg:#171c23;--active-bg:#2a323d;--switch-accent:#9ca8b7}
+html[data-theme="scarlet"] body{background:radial-gradient(circle at 72% -8%,rgba(240,58,85,.16),transparent 31%),radial-gradient(circle at 14% 38%,rgba(128,0,26,.14),transparent 30%),linear-gradient(180deg,#080406 0%,#0d0508 52%,#070305 100%)}
+html[data-theme="slate"] body{background:radial-gradient(circle at 72% -10%,rgba(120,136,151,.14),transparent 34%),radial-gradient(circle at 15% 34%,rgba(91,103,116,.09),transparent 28%),var(--bg)}
+html[data-theme] .input-wrap,html[data-theme] select{background:var(--input-bg)}
+html[data-theme] #timeViewBorders:checked ~ .time-tabs label[for="timeViewBorders"],html[data-theme] #timeViewCards:checked ~ .time-tabs label[for="timeViewCards"]{background:var(--active-bg);color:var(--text)}
+.page{position:relative;z-index:1;padding-top:78px}
+.theme-switcher{position:fixed;z-index:10000;top:13px;right:14px;display:flex;align-items:center;gap:8px;padding:7px 8px 7px 10px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--panel) 88%,transparent);box-shadow:0 12px 34px rgba(0,0,0,.28);backdrop-filter:blur(14px);user-select:none}
+.theme-switcher-label{color:var(--muted);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em}.theme-options{display:flex;align-items:center;gap:4px}.theme-choice{display:flex;align-items:center;gap:5px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);padding:6px 7px;font-size:9px;font-weight:720;cursor:pointer;transition:.15s ease}.theme-choice:hover{border-color:var(--line-2);color:var(--text);background:var(--panel-2)}.theme-choice[aria-pressed="true"]{border-color:color-mix(in srgb,var(--switch-accent) 68%,var(--line));background:color-mix(in srgb,var(--switch-accent) 12%,transparent);color:var(--text)}.theme-choice i{width:7px;height:7px;border-radius:50%;display:block}.theme-choice[data-theme-choice="default"] i{background:#78a8ff}.theme-choice[data-theme-choice="scarlet"] i{background:#f03a55}.theme-choice[data-theme-choice="slate"] i{background:#9ca8b7}
+.blood-rain-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}.blood-drop{position:absolute;top:-24px;display:block;background:radial-gradient(circle at 34% 27%,rgba(255,92,110,.78) 0 10%,rgba(190,10,44,.96) 34%,rgba(101,0,22,.98) 74%,rgba(55,0,12,.98) 100%);border-radius:58% 58% 68% 68% / 43% 43% 78% 78%;box-shadow:0 0 5px rgba(132,0,27,.22);transform-origin:center;will-change:transform;animation:hitcalc-blood-fall var(--blood-fall-time,3s) linear forwards}.blood-drop::before{content:"";position:absolute;width:34%;height:28%;top:9%;left:18%;border-radius:50%;background:rgba(255,150,161,.22)}
+@keyframes hitcalc-blood-fall{from{transform:translate3d(0,-32px,0) rotate(var(--blood-spin,0deg))}to{transform:translate3d(var(--blood-drift,0px),calc(100vh + 64px),0) rotate(var(--blood-spin,0deg))}}
+@media(prefers-reduced-motion:reduce){.blood-rain-layer{display:none!important}}
+@media(max-width:520px){.theme-switcher{left:8px;right:8px;justify-content:space-between}.theme-switcher-label{display:none}.theme-options{width:100%}.theme-choice{flex:1;justify-content:center}.page{padding-top:78px}}
+'''
+          css_path.write_text(css)
+
+          app_path = Path('app.js')
+          app = app_path.read_text()
+          if '/* HIT CALC THEME CONTROLLER V1 */' not in app:
+              app += r'''
+
+/* HIT CALC THEME CONTROLLER V1 */
+(() => {
+  const THEMES=new Set(['default','scarlet','slate']),STORAGE='crx-site-theme',COLORS={default:'#090b0f',scarlet:'#080406',slate:'#171b21'},LAYER_ID='hitCalcBloodRain',MAX_DROPS=140;
+  let rainRunning=false,rainTimer=0;const pending=new Set();
+  const reducedMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,isScarlet=()=>document.documentElement.dataset.theme==='scarlet';
+  function getRainLayer(){let layer=document.getElementById(LAYER_ID);if(!layer){layer=document.createElement('div');layer.id=LAYER_ID;layer.className='blood-rain-layer';layer.setAttribute('aria-hidden','true');document.body.prepend(layer)}return layer}
+  function later(fn,delay){const id=window.setTimeout(()=>{pending.delete(id);fn()},delay);pending.add(id);return id}
+  function stopRain(){window.clearTimeout(rainTimer);rainTimer=0;for(const id of pending)window.clearTimeout(id);pending.clear();rainRunning=false;document.getElementById(LAYER_ID)?.replaceChildren()}
+  function spawnDrop(){if(!rainRunning||!isScarlet()||reducedMotion())return;const layer=getRainLayer();if(layer.childElementCount>=MAX_DROPS)return;const drop=document.createElement('i');drop.className='blood-drop';const size=4+Math.random()*8,height=size*(1.05+Math.random()*.55),duration=2+Math.random()*3.6,drift=-38+Math.random()*76,opacity=.38+Math.random()*.56;drop.style.left=`${(Math.random()*100).toFixed(3)}vw`;drop.style.width=`${size.toFixed(2)}px`;drop.style.height=`${height.toFixed(2)}px`;drop.style.opacity=opacity.toFixed(2);drop.style.setProperty('--blood-fall-time',`${duration.toFixed(2)}s`);drop.style.setProperty('--blood-drift',`${drift.toFixed(1)}px`);drop.style.setProperty('--blood-spin',`${(-10+Math.random()*20).toFixed(1)}deg`);if(Math.random()<.16)drop.style.filter=`blur(${(.45+Math.random()*.75).toFixed(2)}px)`;drop.addEventListener('animationend',()=>drop.remove(),{once:true});layer.appendChild(drop)}
+  function scheduleRain(){if(!rainRunning)return;spawnDrop();const r=Math.random(),delay=r<.18?28+Math.random()*70:r<.72?90+Math.random()*175:260+Math.random()*360;rainTimer=window.setTimeout(scheduleRain,delay)}
+  function startRain(){if(rainRunning||!isScarlet()||reducedMotion())return;rainRunning=true;getRainLayer();const initial=8+Math.floor(Math.random()*9);for(let i=0;i<initial;i++)later(spawnDrop,40+Math.random()*1200);later(scheduleRain,40+Math.random()*180)}
+  function syncRain(){if(isScarlet())startRain();else stopRain()}
+  function applyTheme(theme,persist=true){if(!THEMES.has(theme))theme='default';document.documentElement.dataset.theme=theme;document.querySelectorAll('[data-theme-choice]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.themeChoice===theme)));document.querySelector('meta[name="theme-color"]')?.setAttribute('content',COLORS[theme]);if(persist){try{localStorage.setItem(STORAGE,theme)}catch{}}syncRain()}
+  function boot(){let theme='default';try{const saved=localStorage.getItem(STORAGE);if(THEMES.has(saved))theme=saved}catch{}const switcher=document.createElement('div');switcher.className='theme-switcher';switcher.innerHTML='<span class="theme-switcher-label">Theme</span><div class="theme-options"><button type="button" class="theme-choice" data-theme-choice="default"><i></i>Default</button><button type="button" class="theme-choice" data-theme-choice="scarlet"><i></i>Scarlet</button><button type="button" class="theme-choice" data-theme-choice="slate"><i></i>Slate</button></div>';document.body.appendChild(switcher);switcher.querySelectorAll('[data-theme-choice]').forEach(btn=>btn.addEventListener('click',()=>applyTheme(btn.dataset.themeChoice||'default')));applyTheme(theme,false)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+'''
+          app_path.write_text(app)
+
+          index_path=Path('index.html')
+          index=index_path.read_text()
+          index=re.sub(r'styles\.css\?v=[^"\']+',f'styles.css?v={version}',index)
+          index=re.sub(r'app\.js\?v=[^"\']+',f'app.js?v={version}',index)
+          index=re.sub(r'const version = "[^"]+";',f'const version = "{version}";',index,count=1)
+          if 'hit-calc-theme-bootstrap' not in index:
+              bootstrap='''  <script id="hit-calc-theme-bootstrap">\n    (()=>{const valid=new Set(['default','scarlet','slate']);let theme='default';try{const saved=localStorage.getItem('crx-site-theme');if(valid.has(saved))theme=saved}catch{}document.documentElement.dataset.theme=theme})();\n  </script>\n'''
+              index=index.replace('  <link rel="stylesheet"',bootstrap+'  <link rel="stylesheet"',1)
+          index_path.write_text(index)
+          PY
+
+      - name: Commit one-time theme update and restore workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git show HEAD^:.github/workflows/pages.yml > .github/workflows/pages.yml
+          rm -f .github/workflows/add-hitcalc-themes.yml
+          git add index.html styles.css app.js .github/workflows/pages.yml .github/workflows/add-hitcalc-themes.yml
+          git commit -m "Add Default Scarlet and Slate themes to Hit Calc"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
