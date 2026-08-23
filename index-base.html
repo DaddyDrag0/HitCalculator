@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0d12" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Hit Calc</title>
+  <link rel="stylesheet" href="styles.css?v=20260822-1413" />
+  <script>
+    (() => {
+      const version = "20260822-1413";
+      const key = "hitCalcBuild";
+      try {
+        if (localStorage.getItem(key) !== version) {
+          localStorage.setItem(key, version);
+          const url = new URL(window.location.href);
+          if (url.searchParams.get("v") !== version) {
+            url.searchParams.set("v", version);
+            window.location.replace(url.toString());
+          }
+        }
+      } catch {}
+    })();
+  </script>
+  <style>
+    .result-card { position: static; top: auto; }
+    .time-view-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .time-tabs {
+      display: inline-flex;
+      gap: 4px;
+      margin-top: 18px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--panel-2);
+    }
+    .time-tab {
+      min-width: 112px;
+      padding: 8px 14px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 800;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .time-tab:hover { color: var(--text); }
+    #timeViewBorders:checked ~ .time-tabs label[for="timeViewBorders"],
+    #timeViewCards:checked ~ .time-tabs label[for="timeViewCards"] {
+      border-color: var(--line-2);
+      background: #171b22;
+      color: #fff;
+    }
+    .time-panel { display: none; }
+    #timeViewBorders:checked ~ .border-time-panel,
+    #timeViewCards:checked ~ .card-time-panel { display: block; }
+    .time-panel .chance-results { margin-top: 12px; }
+    @media (max-width: 520px) {
+      .time-tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+      .time-tab { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <h1>Hit Calc</h1>
+      <button id="resetBtn" class="reset-btn" type="button">Reset</button>
+    </header>
+
+    <section class="main-grid">
+      <div class="card setup-card">
+        <div class="section-title">Current stats</div>
+
+        <div class="stats-grid">
+          <label class="stat-field luck-field">
+            <span>Luck</span>
+            <div class="input-wrap"><input id="luck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+
+          <label class="stat-field speed-field">
+            <span>Roll Speed</span>
+            <div class="input-wrap"><input id="rollSpeed" type="number" inputmode="decimal" min="0.01" step="any" value="100" /><b>%</b></div>
+          </label>
+
+          <label class="stat-field">
+            <span>Speed Structure</span>
+            <select id="speedStructure">
+              <option value="0">Level 0 · ×1.000</option>
+              <option value="1">Level 1 · ×1.071</option>
+              <option value="2">Level 2 · ×1.143</option>
+              <option value="3">Level 3 · ×1.214</option>
+              <option value="4">Level 4 · ×1.286</option>
+              <option value="5">Level 5 · ×1.357</option>
+              <option value="6">Level 6 · ×1.429</option>
+              <option value="7">Level 7 · ×1.500</option>
+            </select>
+          </label>
+
+          <label class="stat-field platinum-field">
+            <span>Platinum Luck</span>
+            <div class="input-wrap"><input id="platinumLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+          <label class="stat-field crystal-field">
+            <span>Crystal Luck</span>
+            <div class="input-wrap"><input id="crystalLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+          <label class="stat-field ruby-field">
+            <span>Ruby Luck</span>
+            <div class="input-wrap"><input id="rubyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+          <label class="stat-field galaxy-field">
+            <span>Galaxy Luck</span>
+            <div class="input-wrap"><input id="galaxyLuck" type="number" inputmode="decimal" min="0" step="any" value="1" /><b>×</b></div>
+          </label>
+        </div>
+
+        <label class="check-row">
+          <input id="timeStorm" type="checkbox" />
+          <span><strong>Time Storm</strong></span>
+        </label>
+
+        <label class="check-row">
+          <input id="bossPot" type="checkbox" />
+          <span><strong>Boss Pot</strong></span>
+        </label>
+
+        <label class="check-row">
+          <input id="luckySurge" type="checkbox" />
+          <span><strong>Lucky Surge</strong></span>
+        </label>
+
+        <label class="check-row">
+          <input id="theDice" type="checkbox" />
+          <span><strong>The Dice</strong></span>
+        </label>
+
+        <div class="divider"></div>
+
+        <div class="section-title">Goal borders</div>
+        <div class="border-tabs" aria-label="Goal borders">
+          <button class="border-tab platinum active" type="button" data-border="Platinum" aria-pressed="true"><span class="border-dot"></span><strong>Platinum</strong><span class="checkmark">✓</span></button>
+          <button class="border-tab crystal" type="button" data-border="Crystal" aria-pressed="false"><span class="border-dot"></span><strong>Crystal</strong><span class="checkmark">✓</span></button>
+          <button class="border-tab ruby" type="button" data-border="Ruby" aria-pressed="false"><span class="border-dot"></span><strong>Ruby</strong><span class="checkmark">✓</span></button>
+          <button class="border-tab galaxy" type="button" data-border="Galaxy" aria-pressed="false"><span class="border-dot"></span><strong>Galaxy</strong><span class="checkmark">✓</span></button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">Card rarity target</div>
+        <label class="rarity-target">
+          <span>Minimum rarity</span>
+          <div class="input-wrap"><input id="cardRarity" type="number" inputmode="decimal" min="1" step="any" value="1000000" /></div>
+        </label>
+      </div>
+
+      <aside class="card result-card">
+        <div class="result-block">
+          <div class="result-label">Border target</div>
+          <div id="selectedBorders" class="selected-borders"></div>
+          <div class="primary-results">
+            <div class="primary-stat"><span>Average rolls</span><strong id="averageRolls">100</strong></div>
+            <div class="primary-stat"><span>Average time</span><strong id="averageTime">1m 40s</strong></div>
+          </div>
+        </div>
+
+        <div class="result-divider"></div>
+
+        <div class="result-block">
+          <div class="result-label">Card target</div>
+          <div class="rarity-readout">≥ <strong id="cardTargetLabel">1M</strong></div>
+          <div class="primary-results">
+            <div class="primary-stat"><span>Average rolls</span><strong id="cardAverageRolls">—</strong></div>
+            <div class="primary-stat"><span>Average time</span><strong id="cardAverageTime">—</strong></div>
+          </div>
+        </div>
+
+        <div class="secondary-results">
+          <div><span>Cards / second</span><strong id="cardsPerSecond">1</strong></div>
+          <div><span>Rolls / hour</span><strong id="rollsPerHour">3.6K</strong></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="card time-card">
+      <input class="time-view-input" type="radio" name="timeView" id="timeViewBorders" checked />
+      <input class="time-view-input" type="radio" name="timeView" id="timeViewCards" />
+
+      <div class="time-head">
+        <div class="section-title">Time span</div>
+        <div class="time-controls">
+          <div class="input-wrap time-value-wrap"><input id="timeValue" type="number" inputmode="decimal" min="0" step="any" value="1" /></div>
+          <select id="timeUnit">
+            <option value="second">Seconds</option>
+            <option value="minute">Minutes</option>
+            <option value="hour" selected>Hours</option>
+            <option value="day">Days</option>
+            <option value="week">Weeks</option>
+          </select>
+          <div class="span-rolls"><span>Rolls</span><strong id="timeRolls">3.6K</strong></div>
+        </div>
+      </div>
+
+      <div class="time-tabs" role="tablist" aria-label="Time span results">
+        <label class="time-tab" for="timeViewBorders" role="tab">Borders</label>
+        <label class="time-tab" for="timeViewCards" role="tab">Card Rarity</label>
+      </div>
+
+      <div class="time-panel border-time-panel">
+        <div id="borderChanceResults" class="chance-results"></div>
+      </div>
+
+      <div class="time-panel card-time-panel">
+        <div id="cardChanceResults" class="chance-results rarity-results"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js?v=20260822-1413"></script>
+  <script>
+    const bossPot = document.getElementById("bossPot");
+    const luckySurge = document.getElementById("luckySurge");
+    const theDice = document.getElementById("theDice");
+    const bossCards = [
+      { name: "Mother of Beasts", rarity: 5000000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Sable The Envious", rarity: 100000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Raze The Destroyer", rarity: 50000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Morpheus The Slumberer", rarity: 20000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Lilith The Enchantress", rarity: 5000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Gideon The Insatiable", rarity: 1000000, expires: null, rollFactor: 1, boss: true },
+      { name: "Malik The Sovereign", rarity: 100000, expires: null, rollFactor: 1, boss: true },
+      { name: "Chronus The Hoarder", rarity: 10000, expires: null, rollFactor: 1, boss: true }
+    ];
+    const timeStormCards = [
+      { name: "Parallax", rarity: 1000000000, expires: null, rollFactor: 0.5, weather: "Time Storm" },
+      { name: "Cronus", rarity: 25000000, expires: null, rollFactor: 0.5, weather: "Time Storm" },
+      { name: "Typhon", rarity: 5000000, expires: null, rollFactor: 0.5, weather: "Time Storm" },
+      { name: "Sciron", rarity: 500000, expires: null, rollFactor: 0.5, weather: "Time Storm" },
+      { name: "Ixion", rarity: 100000, expires: null, rollFactor: 0.5, weather: "Time Storm" }
+    ];
+
+    for (const bossCard of bossCards) {
+      const existing = CARD_POOL.find((card) => card.name === bossCard.name);
+      if (existing) existing.boss = true;
+      else CARD_POOL.push(bossCard);
+    }
+    for (const weatherCard of timeStormCards) {
+      const existing = CARD_POOL.find((card) => card.name === weatherCard.name);
+      if (existing) Object.assign(existing, weatherCard);
+      else CARD_POOL.push(weatherCard);
+    }
+    CARD_POOL.sort((a, b) => b.rarity - a.rarity);
+
+    activeCards = function() {
+      const now = Date.now() / 1000;
+      return CARD_POOL.filter((card) => {
+        if (card.expires && card.expires <= now) return false;
+        if (card.weather === "Time Storm" && !els.timeStorm.checked) return false;
+        return true;
+      });
+    };
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      if (typeof saved.bossPot === "boolean") bossPot.checked = saved.bossPot;
+      if (typeof saved.luckySurge === "boolean") luckySurge.checked = saved.luckySurge;
+      if (typeof saved.theDice === "boolean") theDice.checked = saved.theDice;
+    } catch {}
+
+    saveStats = function() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          luck: els.luck.value,
+          rollSpeed: els.rollSpeed.value,
+          speedStructure: els.speedStructure.value,
+          timeStorm: els.timeStorm.checked,
+          bossPot: bossPot.checked,
+          luckySurge: luckySurge.checked,
+          theDice: theDice.checked,
+          platinumLuck: $("platinumLuck").value,
+          crystalLuck: $("crystalLuck").value,
+          rubyLuck: $("rubyLuck").value,
+          galaxyLuck: $("galaxyLuck").value,
+          cardRarity: els.cardRarity.value
+        }));
+        localStorage.removeItem(OLD_STORAGE_KEY);
+      } catch {}
+    };
+
+    function cardDistributionAtLuck(stats, luckMultiplier) {
+      const cards = activeCards();
+      let remaining = 1;
+      const distribution = [];
+
+      for (const card of cards) {
+        const rollRarity = card.rarity * card.rollFactor;
+        const bossMultiplier = bossPot.checked && card.boss ? 5 : 1;
+        const success = Math.min(1, (stats.Luck * luckMultiplier * bossMultiplier) / rollRarity);
+        const probability = remaining * success;
+        if (probability > 0) distribution.push({ card, probability });
+        remaining *= 1 - success;
+        if (remaining <= 0) break;
+      }
+
+      if (remaining > 0 && cards.length) {
+        const fallback = cards[cards.length - 1];
+        const found = distribution.find((entry) => entry.card.name === fallback.name);
+        if (found) found.probability += remaining;
+        else distribution.push({ card: fallback, probability: remaining });
+      }
+
+      return distribution;
+    }
+
+    function luckStates(stats) {
+      const rps = rollsPerSecond(stats);
+      const surgeShare = luckySurge.checked && rps > 0
+        ? Math.min(1, 10 / (30 + (100 / rps)))
+        : 0;
+      const diceShare = theDice.checked ? 1 / 25 : 0;
+      const normalShare = 1 - diceShare;
+      const states = [];
+
+      if (1 - surgeShare > 0) {
+        states.push({ multiplier: 1, weight: (1 - surgeShare) * normalShare });
+        if (diceShare > 0) states.push({ multiplier: 2, weight: (1 - surgeShare) * diceShare });
+      }
+      if (surgeShare > 0) {
+        states.push({ multiplier: 1.25, weight: surgeShare * normalShare });
+        if (diceShare > 0) states.push({ multiplier: 2.5, weight: surgeShare * diceShare });
+      }
+
+      return states;
+    }
+
+    cardSelectionDistribution = function(stats) {
+      const merged = new Map();
+
+      for (const state of luckStates(stats)) {
+        if (!(state.weight > 0)) continue;
+        for (const entry of cardDistributionAtLuck(stats, state.multiplier)) {
+          const existing = merged.get(entry.card.name);
+          if (existing) existing.probability += entry.probability * state.weight;
+          else merged.set(entry.card.name, { card: entry.card, probability: entry.probability * state.weight });
+        }
+      }
+
+      return [...merged.values()];
+    };
+
+    chanceAtLeastOnce = function(perRollRate, rolls) {
+      if (!Number.isFinite(perRollRate) || !Number.isFinite(rolls) || perRollRate <= 0 || rolls <= 0) return 0;
+      return perRollRate * rolls;
+    };
+
+    formatChance = function(hitValue) {
+      if (!Number.isFinite(hitValue) || hitValue <= 0) return "0%";
+
+      const rawPercent = hitValue * 100;
+      if (rawPercent < 1) return `1 / ${formatNumber(1 / hitValue, 2)}`;
+
+      const percent = Math.min(2000, rawPercent);
+      if (percent >= 2000) return "2000%";
+      if (percent >= 10) return `${trimFixed(percent, 1)}%`;
+      return `${trimFixed(percent, 2)}%`;
+    };
+
+    for (const toggle of [bossPot, luckySurge, theDice]) {
+      toggle.addEventListener("change", () => {
+        saveStats();
+        render();
+      });
+    }
+
+    els.resetBtn.addEventListener("click", () => {
+      bossPot.checked = false;
+      luckySurge.checked = false;
+      theDice.checked = false;
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(OLD_STORAGE_KEY);
+      } catch {}
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
