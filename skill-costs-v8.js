@@ -11,8 +11,6 @@
     { className: 'galaxy', select: 'uvSkillGalaxy', costs: [1, 1, 1, 1, 1, 3] },
   ];
 
-  const branchByClass = new Map(BRANCHES.map((branch) => [branch.className, branch]));
-
   function level(branch) {
     return Math.max(0, Math.min(branch.costs.length, Math.floor(Number($(branch.select)?.value) || 0)));
   }
@@ -31,6 +29,11 @@
 
   function available() {
     return Math.max(0, earned() - spent());
+  }
+
+  function pathCost(branch, fromLevel, toLevel) {
+    if (toLevel <= fromLevel) return 0;
+    return branch.costs.slice(fromLevel, toLevel).reduce((sum, cost) => sum + cost, 0);
   }
 
   function branchFromElement(element) {
@@ -78,16 +81,18 @@
     const current = level(branch);
     const nodeLevel = index + 1;
 
+    // Clicking any purchased node respecs this branch directly back to that node.
+    // Example: Lv 7 -> click node 1 = Lv 1; Lv 7 -> click node 4 = Lv 4.
     if (nodeLevel <= current) {
-      if (nodeLevel === current) setLevel(branch, current - 1);
+      if (nodeLevel < current) setLevel(branch, nodeLevel);
       return;
     }
 
-    if (nodeLevel !== current + 1) return;
-
-    const cost = branch.costs[index];
-    if (available() < cost) {
-      showNotice(`You need ${cost} SP for this node.`);
+    // Clicking any future node buys every required node in between at once.
+    const cost = pathCost(branch, current, nodeLevel);
+    const points = available();
+    if (points < cost) {
+      showNotice(`You need ${cost} SP to reach this node. You have ${points} SP available.`);
       return;
     }
 
@@ -103,21 +108,30 @@
 
     nodes.forEach((node, index) => {
       const nodeLevel = index + 1;
-      const cost = branch.costs[index];
+      const nodeCost = branch.costs[index];
       const bought = nodeLevel <= current;
-      const next = nodeLevel === current + 1;
-      const canBuy = next && points >= cost;
+      const totalPathCost = pathCost(branch, current, nodeLevel);
+      const canBuyPath = nodeLevel > current && points >= totalPathCost;
 
       node.classList.remove('bought', 'available', 'locked', 'special');
       if (bought) node.classList.add('bought');
-      else if (canBuy) node.classList.add('available');
+      else if (canBuyPath) node.classList.add('available');
       else node.classList.add('locked');
 
       const small = node.querySelector('.uv-tree-node-copy small');
-      if (small) small.textContent = `${cost} SP`;
+      if (small) {
+        if (nodeLevel > current && totalPathCost !== nodeCost) small.textContent = `${totalPathCost} SP path`;
+        else small.textContent = `${nodeCost} SP`;
+      }
 
-      const originalTitle = node.title || '';
-      node.title = originalTitle.replace(/(?:\?|\d+) SP$/, `${cost} SP`);
+      const baseTitle = node.title.replace(/(?:\?|\d+) SP(?: path)?$/, '').replace(/ · Buy through: \d+ SP$/, '');
+      if (nodeLevel > current) {
+        node.title = `${baseTitle} · Buy through: ${totalPathCost} SP`;
+      } else if (nodeLevel < current) {
+        node.title = `${baseTitle} · Click to refund back to Lv ${nodeLevel}`;
+      } else {
+        node.title = `${baseTitle} · Current level`;
+      }
     });
   }
 
@@ -146,7 +160,6 @@
     const max = earned();
     if (total <= max) return;
 
-    // Refund the most recently reachable/highest nodes until the build fits the Index budget.
     while (total > max) {
       let candidate = null;
       for (const branch of BRANCHES) {
