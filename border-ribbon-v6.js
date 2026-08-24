@@ -20,10 +20,10 @@
   };
 
   const CONFIG = {
-    Platinum: { output: 'uvOutPlatinum', skill: 'uvSkillPlatinum', structure: 'uvStructurePlatinum', chaska: 'uvChaskaPlatinum', rate: 0.05 },
-    Crystal: { output: 'uvOutCrystal', skill: 'uvSkillCrystal', structure: 'uvStructureCrystal', chaska: 'uvChaskaCrystal', rate: 0.10 },
-    Ruby: { output: 'uvOutRuby', skill: 'uvSkillRuby', structure: 'uvStructureRuby', chaska: null, rate: 0 },
-    Galaxy: { output: 'uvOutGalaxy', skill: 'uvSkillGalaxy', structure: 'uvStructureGalaxy', chaska: 'uvChaskaGalaxy', rate: 0.25 },
+    Platinum: { output: 'uvOutPlatinum', skill: 'uvSkillPlatinum', structure: 'uvStructurePlatinum', chaska: 'uvChaskaPlatinum', rate: 0.05, dungeon: 'uvDungeonPlatinum', dungeonPer: 0.25 },
+    Crystal: { output: 'uvOutCrystal', skill: 'uvSkillCrystal', structure: 'uvStructureCrystal', chaska: 'uvChaskaCrystal', rate: 0.10, dungeon: 'uvDungeonCrystal', dungeonPer: 0.5 },
+    Ruby: { output: 'uvOutRuby', skill: 'uvSkillRuby', structure: 'uvStructureRuby', chaska: null, rate: 0, dungeon: 'uvDungeonRuby', dungeonPer: 0.75 },
+    Galaxy: { output: 'uvOutGalaxy', skill: 'uvSkillGalaxy', structure: 'uvStructureGalaxy', chaska: 'uvChaskaGalaxy', rate: 0.25, dungeon: 'uvDungeonGalaxy', dungeonPer: 2 },
   };
 
   const $ = (id) => document.getElementById(id);
@@ -58,6 +58,7 @@
     const allStat = SKILLS.AllStat[level('uvSkillAll', SKILLS.AllStat.length - 1)] || 0;
     const allStatMultiplier = 1 + allStat / 100;
     const borderBoost = $('uvBorderBoost')?.checked ? 1.5 : 1;
+    const divineBoost = $('uvPotDivine')?.checked ? 1.1 : 1;
 
     for (const [name, cfg] of Object.entries(CONFIG)) {
       const values = SKILLS[name];
@@ -65,8 +66,9 @@
       const structureLevel = level(cfg.structure, 5);
       const structureMultiplier = 1 + structureLevel / 5;
       const nonChaska = (1 + (charm[name] || 0) + skillValue) * allStatMultiplier * structureMultiplier;
+      const dungeon = level(cfg.dungeon, 25) * cfg.dungeonPer;
       const chaska = cfg.chaska ? chaskaBonus(Number($(cfg.chaska)?.value) || 0, cfg.rate) : 0;
-      const effective = nonChaska * borderBoost + chaska;
+      const effective = (nonChaska * borderBoost + dungeon + chaska) * divineBoost;
       const output = $(cfg.output);
       if (output) output.textContent = `${format(effective)}×`;
     }
