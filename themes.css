@@ -1,4 +1,4 @@
-/* HIT CALC THEMES V1 */
+/* HIT CALC THEMES V2 */
 :root{
   --input-bg:#080a0e;
   --active-bg:#171b22;
@@ -33,6 +33,21 @@ html[data-theme="slate"]{
   --switch-accent:#9ca8b7;
 }
 
+html[data-theme="lava"]{
+  --bg:#090202;
+  --panel:rgba(26,8,6,.87);
+  --panel-2:rgba(34,10,7,.86);
+  --line:#5d2418;
+  --line-2:#79301c;
+  --text:#fff4e8;
+  --muted:#b89784;
+  --blue:#ff8e2d;
+  --luck:#ffc56b;
+  --input-bg:rgba(20,6,4,.94);
+  --active-bg:#37120a;
+  --switch-accent:#ff8e2d;
+}
+
 html[data-theme="scarlet"] body{
   background:
     radial-gradient(circle at 72% -8%,rgba(240,58,85,.16),transparent 31%),
@@ -47,6 +62,14 @@ html[data-theme="slate"] body{
     var(--bg);
 }
 
+html[data-theme="lava"] body{
+  background:
+    radial-gradient(circle at 50% -15%,rgba(255,111,20,.20),transparent 36%),
+    radial-gradient(circle at 4% 46%,rgba(202,20,5,.13),transparent 34%),
+    radial-gradient(circle at 96% 74%,rgba(255,164,38,.11),transparent 34%),
+    linear-gradient(180deg,#090202 0%,#100302 42%,#060101 100%);
+}
+
 html[data-theme] .input-wrap,
 html[data-theme] select{background:var(--input-bg)}
 
@@ -54,6 +77,24 @@ html[data-theme] #timeViewBorders:checked ~ .time-tabs label[for="timeViewBorder
 html[data-theme] #timeViewCards:checked ~ .time-tabs label[for="timeViewCards"]{
   background:var(--active-bg);
   color:var(--text);
+}
+
+html[data-theme="lava"] .card{
+  border-color:rgba(126,48,26,.74);
+  background:linear-gradient(180deg,rgba(38,12,8,.84),rgba(16,5,4,.9));
+  box-shadow:0 20px 65px rgba(39,3,0,.34),0 0 0 1px rgba(255,111,31,.025),inset 0 1px rgba(255,191,104,.035);
+  backdrop-filter:blur(13px) saturate(1.12);
+}
+html[data-theme="lava"] :is(.stat-field,.rarity-target,.check-row,.primary-stat,.secondary-results>div,.chance-item,.target-chip,.empty-target,.rarity-chip){
+  background:rgba(34,10,7,.82);
+}
+html[data-theme="lava"] h1{text-shadow:0 0 26px rgba(255,112,28,.18)}
+html[data-theme="lava"] .reset-btn{border-color:#71301e;color:#e7b48b;background:rgba(31,9,6,.6)}
+html[data-theme="lava"] .reset-btn:hover{border-color:#a94b22;color:#fff0d8}
+html[data-theme="lava"] .theme-switcher{
+  border-color:rgba(120,48,28,.72);
+  background:rgba(20,6,5,.76);
+  box-shadow:0 12px 38px rgba(33,2,0,.44),0 0 28px rgba(255,92,21,.055);
 }
 
 .page{
@@ -116,6 +157,10 @@ html[data-theme] #timeViewCards:checked ~ .time-tabs label[for="timeViewCards"]{
 .theme-choice[data-theme-choice="default"] i{background:#78a8ff}
 .theme-choice[data-theme-choice="scarlet"] i{background:#f03a55}
 .theme-choice[data-theme-choice="slate"] i{background:#9ca8b7}
+.theme-choice[data-theme-choice="lava"] i{
+  background:linear-gradient(135deg,#ffe169 0%,#ff8a24 42%,#ef2c12 72%,#8c0905 100%);
+  box-shadow:0 0 10px rgba(255,112,26,.56);
+}
 
 .blood-rain-layer{
   position:fixed;
@@ -153,8 +198,135 @@ html[data-theme] #timeViewCards:checked ~ .time-tabs label[for="timeViewCards"]{
   to{transform:translate3d(var(--blood-drift,0px),calc(100vh + 64px),0) rotate(var(--blood-spin,0deg))}
 }
 
+.lava-ambience-layer{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  overflow:hidden;
+  contain:strict;
+  background:transparent;
+}
+.lava-haze{
+  position:absolute;
+  inset:-15%;
+  opacity:.82;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 18% 16%,rgba(255,139,37,.12),transparent 29%),
+    radial-gradient(ellipse at 78% 31%,rgba(221,34,12,.12),transparent 31%),
+    radial-gradient(ellipse at 51% 82%,rgba(255,98,19,.10),transparent 34%),
+    radial-gradient(ellipse at 92% 92%,rgba(255,196,66,.055),transparent 26%);
+  filter:blur(24px) saturate(1.35);
+  animation:lava-haze-breathe 13s ease-in-out infinite alternate;
+}
+.lava-blob{
+  position:absolute;
+  display:block;
+  will-change:transform;
+  transform-origin:center;
+  animation:lava-float var(--lava-float-time,36s) cubic-bezier(.44,.04,.55,.96) var(--lava-delay,0s) infinite;
+}
+.lava-reactor{
+  position:absolute;
+  inset:0;
+  display:block;
+  transform-origin:center;
+  will-change:transform;
+}
+.lava-reactor .lava-core{position:absolute}
+html[data-theme="lava"] .lava-blob{
+  pointer-events:auto;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+html[data-theme="lava"] .lava-blob.dragging{
+  cursor:grabbing;
+  animation-play-state:paused!important;
+  z-index:20;
+}
+html[data-theme="lava"] .lava-blob.dragging .lava-core{
+  filter:blur(var(--lava-blur,10px)) saturate(1.38) brightness(1.05);
+}
+.lava-core{
+  position:absolute;
+  inset:4%;
+  display:block;
+  border-radius:44% 56% 61% 39% / 46% 37% 63% 54%;
+  filter:blur(var(--lava-blur,10px)) saturate(1.3);
+  will-change:transform,border-radius;
+  animation:lava-morph var(--lava-morph-time,9s) ease-in-out var(--lava-morph-delay,0s) infinite alternate;
+}
+.lava-blob[data-lava-tone="ember"] .lava-core{
+  background:radial-gradient(circle at 32% 27%,rgba(255,232,126,.96) 0 3%,rgba(255,139,32,.95) 18%,rgba(242,57,14,.91) 49%,rgba(121,7,4,.83) 76%,rgba(55,2,2,.42) 100%);
+  box-shadow:0 0 55px rgba(255,73,15,.34),0 0 120px rgba(179,12,3,.18),inset -25px -28px 44px rgba(71,0,0,.28);
+}
+.lava-blob[data-lava-tone="gold"] .lava-core{
+  background:radial-gradient(circle at 31% 25%,rgba(255,247,173,.95) 0 3%,rgba(255,190,55,.94) 21%,rgba(255,91,18,.88) 54%,rgba(113,9,3,.72) 82%,rgba(43,1,0,.32) 100%);
+  box-shadow:0 0 62px rgba(255,154,28,.29),0 0 130px rgba(255,76,13,.12),inset -30px -25px 50px rgba(93,8,0,.25);
+}
+.lava-blob[data-lava-tone="crimson"] .lava-core{
+  background:radial-gradient(circle at 34% 30%,rgba(255,147,56,.9) 0 5%,rgba(247,53,17,.91) 28%,rgba(165,8,7,.86) 58%,rgba(72,1,4,.7) 84%,rgba(30,0,2,.35) 100%);
+  box-shadow:0 0 58px rgba(222,22,8,.3),0 0 118px rgba(126,4,4,.19),inset -26px -31px 46px rgba(47,0,3,.33);
+}
+.lava-blob[data-lava-tone="plasma"] .lava-core{
+  background:radial-gradient(circle at 30% 26%,rgba(255,218,119,.9) 0 4%,rgba(255,104,31,.91) 24%,rgba(218,24,28,.84) 52%,rgba(114,8,48,.66) 78%,rgba(35,0,24,.28) 100%);
+  box-shadow:0 0 62px rgba(255,57,23,.3),0 0 115px rgba(146,6,50,.16),inset -28px -28px 45px rgba(54,0,25,.28);
+}
+.lava-core::before{
+  content:"";
+  position:absolute;
+  width:31%;
+  height:22%;
+  left:17%;
+  top:13%;
+  border-radius:50%;
+  transform:rotate(-18deg);
+  background:radial-gradient(ellipse,rgba(255,250,205,.35),rgba(255,213,117,.08) 56%,transparent 72%);
+  filter:blur(3px);
+}
+.lava-bubble{
+  position:absolute;
+  display:block;
+  pointer-events:none;
+  border-radius:50% 45% 54% 46%;
+  background:radial-gradient(circle at 34% 28%,rgba(255,235,157,.88) 0 7%,rgba(255,136,37,.78) 29%,rgba(220,39,13,.63) 63%,rgba(96,5,3,.25) 100%);
+  box-shadow:0 0 13px rgba(255,87,20,.24),inset -4px -5px 9px rgba(79,2,0,.34);
+  filter:blur(.3px);
+  will-change:transform;
+  animation:lava-bubble-drift var(--bubble-time,20s) ease-in-out var(--bubble-delay,0s) infinite alternate;
+}
+@keyframes lava-float{
+  0%{transform:translate3d(0,0,0) rotate(0deg)}
+  28%{transform:translate3d(var(--lava-x1),var(--lava-y1),0) rotate(var(--lava-rot1))}
+  62%{transform:translate3d(var(--lava-x2),var(--lava-y2),0) rotate(var(--lava-rot2))}
+  83%{transform:translate3d(var(--lava-x3),var(--lava-y3),0) rotate(var(--lava-rot3))}
+  100%{transform:translate3d(0,0,0) rotate(0deg)}
+}
+@keyframes lava-morph{
+  0%{border-radius:44% 56% 61% 39% / 46% 37% 63% 54%;transform:scale(.84,1.12) rotate(-5deg)}
+  24%{border-radius:63% 37% 43% 57% / 36% 62% 38% 64%;transform:scale(1.08,.86) rotate(3deg)}
+  51%{border-radius:35% 65% 62% 38% / 61% 36% 64% 39%;transform:scale(.9,1.08) rotate(8deg)}
+  77%{border-radius:58% 42% 34% 66% / 43% 58% 42% 57%;transform:scale(1.11,.9) rotate(-4deg)}
+  100%{border-radius:47% 53% 68% 32% / 57% 35% 65% 43%;transform:scale(.88,1.14) rotate(5deg)}
+}
+@keyframes lava-bubble-drift{
+  0%{transform:translate3d(0,0,0) scale(.8) rotate(-8deg)}
+  35%{transform:translate3d(var(--bubble-wobble),var(--bubble-travel-38),0) scale(1.08,.87) rotate(6deg)}
+  70%{transform:translate3d(var(--bubble-drift),var(--bubble-travel-72),0) scale(.9,1.13) rotate(-3deg)}
+  100%{transform:translate3d(var(--bubble-drift-mid),var(--bubble-travel),0) scale(1.03,.94) rotate(9deg)}
+}
+@keyframes lava-haze-breathe{
+  from{transform:scale(1) translate3d(-1%,0,0);opacity:.62}
+  to{transform:scale(1.08) translate3d(2%,-2%,0);opacity:.92}
+}
+
 @media(prefers-reduced-motion:reduce){
   .blood-rain-layer{display:none!important}
+  .lava-blob,.lava-bubble{display:none!important}
+  .lava-haze{animation:none!important;opacity:.7}
 }
 
 @media(max-width:520px){
