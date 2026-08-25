@@ -44,7 +44,7 @@
       if (total) cards.push({ i, total, ...bestMaskForCard(a, i) });
     }
     const rows = cards.sort((x, y) => y.effective - x.effective || DATA.cards[y.i].rarity - DATA.cards[x.i].rarity).slice(0, 15);
-    return `<div class="rs25-best-block"><div class="rs25-best-title"><strong>Best Pulls</strong><small>One entry per card, ranked by the best bordered version pulled.</small></div><div class="rs-table-wrap"><table class="rs-table"><thead><tr><th>Card</th><th>Best Border</th><th>Best Effective Rarity</th><th>Total Pulled</th></tr></thead><tbody>${rows.map((row)=>{const card=DATA.cards[row.i];return `<tr><td><strong>${esc(card.name)}</strong><small>${esc(meta(card))}</small></td><td>${esc(maskLabel(row.mask))}</td><td>1 / ${fmt(row.effective)}</td><td>${fmt(row.total)}</td></tr>`;}).join('')}</tbody></table></div></div>`;
+    return `<div class="rs25-best-block"><div class="rs25-best-title"><strong>Best Pulls</strong><small>One entry per card, ranked by the best bordered version pulled.</small></div><div class="rs-table-wrap"><table class="rs-table"><thead><tr><th>Card</th><th>Best Border</th><th>Best Effective Rarity</th><th>Times Pulled</th></tr></thead><tbody>${rows.map((row)=>{const card=DATA.cards[row.i];return `<tr><td><strong>${esc(card.name)}</strong><small>${esc(meta(card))}</small></td><td>${esc(maskLabel(row.mask))}</td><td>1 / ${fmt(row.effective)}</td><td>${fmt(row.count)}</td></tr>`;}).join('')}</tbody></table></div></div>`;
   }
   function patch() {
     if (!DATA) return;
