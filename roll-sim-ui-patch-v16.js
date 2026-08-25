@@ -58,20 +58,11 @@
     const bordersPanel = body?.querySelector('[data-result-panel="borders"]');
     const bestPanel = body?.querySelector('[data-result-panel="best"]');
 
-    if (tabs && bordersButton && bestButton && bordersButton !== tabs.firstElementChild) {
-      tabs.insertBefore(bordersButton, bestButton);
-    }
-    if (body && bordersPanel && bestPanel && bordersPanel !== body.firstElementChild) {
-      body.insertBefore(bordersPanel, bestPanel);
-    }
+    if (tabs && bordersButton && bestButton && bordersButton !== tabs.firstElementChild) tabs.insertBefore(bordersButton, bestButton);
+    if (body && bordersPanel && bestPanel && bordersPanel !== body.firstElementChild) body.insertBefore(bordersPanel, bestPanel);
 
-    tabs?.querySelectorAll('[data-rs-result-tab]').forEach((button) => {
-      button.classList.toggle('active', button === bordersButton);
-    });
-    body?.querySelectorAll('[data-result-panel]').forEach((section) => {
-      section.hidden = section !== bordersPanel;
-    });
-
+    tabs?.querySelectorAll('[data-rs-result-tab]').forEach((button) => button.classList.toggle('active', button === bordersButton));
+    body?.querySelectorAll('[data-result-panel]').forEach((section) => { section.hidden = section !== bordersPanel; });
     panel.dataset.rsPriorityPatched = '1';
   }
 
@@ -99,7 +90,7 @@
       const notice = document.createElement('div');
       notice.id = 'rsExactRollNotice';
       notice.className = 'rs-exact-roll-notice';
-      notice.innerHTML = '<strong>Roll-by-roll RNG</strong><span>Each roll gets its own random card + border result. Multi-run batches use several CPU workers at once.</span>';
+      notice.innerHTML = '<strong>Per-roll RNG</strong><span>Every simulated roll gets its own independent card + border result. The exact sequential probability table is precomputed for speed, so it does not re-check every card one-by-one on every roll.</span>';
       const runBar = runSettings.querySelector('.rs-run-bar');
       if (runBar) runBar.insertAdjacentElement('beforebegin', notice);
       else runSettings.append(notice);
@@ -111,11 +102,7 @@
     const style = document.createElement('style');
     style.id = 'roll-sim-ui-patch-v16-styles';
     style.textContent = `
-      #rollSimulatorV15 .rs-exact-roll-notice{
-        display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-        margin-top:12px;padding:8px 10px;border:1px solid var(--line);
-        border-radius:8px;background:var(--panel-2)
-      }
+      #rollSimulatorV15 .rs-exact-roll-notice{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
       #rollSimulatorV15 .rs-exact-roll-notice strong{color:var(--blue);font-size:.63rem}
       #rollSimulatorV15 .rs-exact-roll-notice span{color:var(--muted);font-size:.59rem}
     `;
