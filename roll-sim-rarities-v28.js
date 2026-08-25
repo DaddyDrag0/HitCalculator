@@ -46,6 +46,33 @@
     return `${lead}${suffix}`;
   }
 
+  function durationLabel(seconds) {
+    const total = Math.max(1, Math.round(Number(seconds) || 1));
+    if (total % 86400 === 0) {
+      const value = total / 86400;
+      return `${value} Day${value === 1 ? '' : 's'}`;
+    }
+    if (total % 3600 === 0) {
+      const value = total / 3600;
+      return `${value} Hour${value === 1 ? '' : 's'}`;
+    }
+    if (total % 60 === 0) {
+      const value = total / 60;
+      return `${value} Minute${value === 1 ? '' : 's'}`;
+    }
+    return `${total} Second${total === 1 ? '' : 's'}`;
+  }
+
+  function averageHitsText(value) {
+    const average = Number(value) || 0;
+    if (average >= 1000) return compact(average);
+    if (average >= 1) return trim(average, 2);
+    if (average >= 0.1) return trim(average, 2);
+    if (average >= 0.01) return trim(average, 3);
+    if (average > 0) return trim(average, 4);
+    return '0';
+  }
+
   function maskMultiplier(mask) {
     let multiplier = 1;
     for (let i = 0; i < DATA.borderNames.length; i += 1) {
@@ -91,12 +118,13 @@
     return Array.from({ length: maxPower - START_POWER + 1 }, (_, index) => START_POWER + index);
   }
 
-  function buildMarkup(result) {
+  function buildMarkup(result, durationSeconds) {
     const aggregate = result?.aggregate;
     const runs = Array.isArray(result?.runs) ? result.runs.filter(Boolean) : [];
     const runCount = Math.max(1, Number(aggregate?.runs) || runs.length || 1);
-    if (!aggregate) return '<div class="rs-rarity-empty">Run a simulation to see rarity averages.</div>';
+    if (!aggregate) return '<div class="rs-rarity-empty">Run a simulation to see rarity results.</div>';
 
+    const time = durationLabel(durationSeconds);
     const rows = thresholdsFor(aggregate).map((power) => {
       const threshold = 10 ** power;
       const total = thresholdCount(aggregate.cardMasks, threshold);
@@ -104,20 +132,19 @@
       let hitRuns = 0;
       for (const run of runs) if (runThresholdCount(run, threshold) > 0) hitRuns += 1;
       const chance = runs.length ? hitRuns / runs.length : (average > 0 ? Math.min(1, average) : 0);
-      const averageText = average >= 1 ? `${compact(average)} average` : average > 0 ? `${trim(average * 100, average * 100 >= 10 ? 1 : 2)}% of a pull` : '0';
       const chanceText = `${trim(chance * 100, chance * 100 >= 10 ? 1 : 2)}%`;
-      return { power, threshold, total, average, averageText, chanceText };
+      return { power, threshold, total, average, averageText: averageHitsText(average), chanceText };
     });
 
     return `
       <div class="rs28-rarity-card">
         <div class="rs28-rarity-head">
-          <div><strong>Effective Rarity Thresholds</strong><small>Counts the final card rarity after all landed border multipliers.</small></div>
-          <div class="rs28-rarity-note">Average is pulls per simulation. Chance is the exact share of individual runs that hit at least one.</div>
+          <div><strong>Rarity Results</strong><small>Uses the card's final rarity after borders.</small></div>
+          <div class="rs28-rarity-note">Average Hits = usual amount in ${esc(time)}. Chance = chance you get at least one in ${esc(time)}.</div>
         </div>
         <div class="rs-table-wrap">
           <table class="rs-table rs28-rarity-table">
-            <thead><tr><th>Minimum Rarity</th><th>Average per Run</th><th>Chance per Run</th><th>Total</th></tr></thead>
+            <thead><tr><th>Minimum Rarity</th><th>Average Hits in ${esc(time)}</th><th>Chance to Get 1+ in ${esc(time)}</th><th>Total Hits in ${runCount} Run${runCount === 1 ? '' : 's'}</th></tr></thead>
             <tbody>${rows.map((row) => `<tr>
               <td><strong>≥ ${esc(thresholdLabel(row.power))}</strong><small>1 / ${esc(compact(row.threshold))}+</small></td>
               <td>${esc(row.averageText)}</td>
@@ -167,10 +194,10 @@
     if (!panel || !result) return;
     const section = ensureUi(panel);
     if (!section) return;
-    const stamp = String(payload.jobId ?? 'result');
+    const stamp = `${payload.jobId ?? 'result'}-${payload.durationSeconds ?? 0}`;
     if (section.dataset.rsRarityV28 === stamp) return;
     section.dataset.rsRarityV28 = stamp;
-    section.innerHTML = buildMarkup(result);
+    section.innerHTML = buildMarkup(result, payload.durationSeconds);
   }
 
   function handleTabClick(event) {
@@ -200,7 +227,7 @@
       #rollSimulatorV15 .rs28-rarity-head strong{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
       #rollSimulatorV15 .rs28-rarity-head small,#rollSimulatorV15 .rs28-rarity-note{color:var(--muted);font-size:.55rem}
       #rollSimulatorV15 .rs28-rarity-head small{display:block;margin-top:3px}
-      #rollSimulatorV15 .rs28-rarity-note{max-width:440px;text-align:right}
+      #rollSimulatorV15 .rs28-rarity-note{max-width:500px;text-align:right}
       #rollSimulatorV15 .rs28-rarity-table td:first-child strong{display:block}
       #rollSimulatorV15 .rs28-rarity-table td:first-child small{display:block;margin-top:2px;color:var(--muted);font-size:.52rem}
       #rollSimulatorV15 .rs-rarity-empty{padding:16px;color:var(--muted);text-align:center}
