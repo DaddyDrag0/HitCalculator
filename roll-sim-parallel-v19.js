@@ -8,6 +8,7 @@
   const BN = DATA.borderNames;
   const MASK_COUNT = 16;
   const ALL_PACKS = [...new Set(CARDS.map((card) => card.pack).filter(Boolean))];
+  const RUN_OPTIONS = [1, 50, 100, 500, 1000];
 
   function aggregateRuns(runs) {
     const count = runs.length || 1;
@@ -119,14 +120,12 @@
       this._cancelled = false;
 
       const rawScenarios = Array.isArray(message.scenarios) ? message.scenarios : [];
-      const scenarios = rawScenarios.map((scenario, index) => ({
+      const scenarios = rawScenarios.slice(0, 1).map((scenario, index) => ({
         ...scenario,
-        build: {
-          ...(scenario?.build || {}),
-          enabledPacks: packsForScenario(index),
-        },
+        build: { ...(scenario?.build || {}), enabledPacks: packsForScenario(index) },
       }));
-      const runCount = [1, 3, 8, 25, 50, 100].includes(Number(message.runs)) ? Number(message.runs) : 1;
+      const requestedRuns = Number(message.runs);
+      const runCount = RUN_OPTIONS.includes(requestedRuns) ? requestedRuns : 1;
       const tasks = [];
       const results = scenarios.map(() => Array(runCount).fill(null));
       for (let s = 0; s < scenarios.length; s += 1) {
@@ -160,15 +159,16 @@
           try { worker.terminate(); } catch {}
         }
         this._workers.length = 0;
-        const packed = results.map((runs) => ({ aggregate: aggregateRuns(runs), runs }));
-        this._emitMessage({
+        const payload = {
           type: 'result',
           jobId: message.jobId,
           durationSeconds: message.durationSeconds,
           runCount,
-          scenarios: packed,
+          scenarios: results.map((runs) => ({ aggregate: aggregateRuns(runs), runs })),
           parallelWorkers: concurrency,
-        });
+        };
+        window.__rollSimLastResultV21 = payload;
+        this._emitMessage(payload);
       };
 
       const assign = (worker) => {
