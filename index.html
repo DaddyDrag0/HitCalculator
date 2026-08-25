@@ -16,10 +16,10 @@
       const response=await fetch(`./index-base.html?rev=${version}`,{cache:'no-store'});
       if(!response.ok)throw new Error(`HTTP ${response.status}`);
       let html=await response.text();
-      html=html.replace(/styles\.css\?v=[^"']+/g,`styles.css?v=${version}`);
-      html=html.replace(/app\.js\?v=[^"']+/g,`app.js?v=${version}`);
+      html=html.replace(/styles\.css\?v=[^"']+/g,`styles.css?v=${version}&theme=lava1`);
+      html=html.replace(/app\.js\?v=[^"']+/g,`app.js?v=${version}&theme=lava1`);
       html=html.replace(/const version = "[^"]+";/,`const version = "${version}";`);
-      const bootstrap='<scr'+'ipt id="hit-calc-theme-bootstrap">(()=>{const valid=new Set([\'default\',\'scarlet\',\'slate\']);let theme=\'default\';try{const saved=localStorage.getItem(\'crx-site-theme\');if(valid.has(saved))theme=saved}catch{}document.documentElement.dataset.theme=theme})();</scr'+'ipt>\n';
+      const bootstrap='<scr'+'ipt id="hit-calc-theme-bootstrap">(()=>{const valid=new Set([\'default\',\'scarlet\',\'slate\',\'lava\']);let theme=\'default\';try{const saved=localStorage.getItem(\'crx-site-theme\');if(valid.has(saved))theme=saved}catch{}document.documentElement.dataset.theme=theme})();</scr'+'ipt>\n';
       html=html.replace('  <link rel="stylesheet"',bootstrap+'  <link rel="stylesheet"');
       document.open();
       document.write(html);
