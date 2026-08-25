@@ -3,6 +3,7 @@ importScripts('./roll-sim-data-v15.js?rev=20260824-2004');
 const DATA = globalThis.ROLL_SIM_DATA_V15;
 const CARDS = DATA.cards;
 const BN = DATA.borderNames;
+const MASK_COUNT = 16;
 const SKILLS = {
   Luck: [0, 15, 30, 45, 60, 75, 90, 150],
   Speed: [0, 5, 10, 15, 20, 25, 30, 45],
@@ -36,6 +37,7 @@ const CHARMS = {
   'Forbidden Fruit': { Luck: 50, Platinum: 4, Crystal: 4, Ruby: 4, Galaxy: 4, Cooldown: 200 },
   'Book of Life and Death': { Luck: 66, Platinum: 6, Crystal: 6, Ruby: 6, Galaxy: 6, Cooldown: 200 },
 };
+
 const VIC_STATES = [];
 for (let plus = 0; plus < BN.length; plus += 1) {
   for (let minus = 0; minus < BN.length; minus += 1) {
@@ -47,6 +49,15 @@ for (let plus = 0; plus < BN.length; plus += 1) {
   }
 }
 
+const MASK_MULTIPLIERS = new Float64Array(MASK_COUNT);
+for (let mask = 0; mask < MASK_COUNT; mask += 1) {
+  let multiplier = 1;
+  for (let i = 0; i < BN.length; i += 1) {
+    if (mask & (1 << i)) multiplier *= DATA.borders[BN[i]].multiplier;
+  }
+  MASK_MULTIPLIERS[mask] = multiplier;
+}
+
 function mulberry32(seed) {
   let a = seed >>> 0;
   return function rng() {
@@ -56,65 +67,6 @@ function mulberry32(seed) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-function normal01(rng) {
-  let u = 0;
-  let v = 0;
-  while (u <= Number.EPSILON) u = rng();
-  while (v <= Number.EPSILON) v = rng();
-  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-}
-
-function sampleBinomial(n, p, rng) {
-  n = Math.max(0, Math.floor(n));
-  if (!n || !(p > 0)) return 0;
-  if (p >= 1) return n;
-  if (p > 0.5) return n - sampleBinomial(n, 1 - p, rng);
-  if (n <= 96) {
-    let k = 0;
-    for (let i = 0; i < n; i += 1) if (rng() < p) k += 1;
-    return k;
-  }
-  const mean = n * p;
-  if (mean < 30) {
-    const q = 1 - p;
-    let prob = Math.exp(n * Math.log(q));
-    let cumulative = prob;
-    const u = rng();
-    let k = 0;
-    while (u > cumulative && k < n) {
-      prob *= ((n - k) / (k + 1)) * (p / q);
-      k += 1;
-      cumulative += prob;
-      if (prob <= 0) break;
-    }
-    return k;
-  }
-  const sd = Math.sqrt(n * p * (1 - p));
-  let value = Math.round(mean + sd * normal01(rng));
-  if (value < 0) value = 0;
-  if (value > n) value = n;
-  return value;
-}
-
-function sampleMultinomial(n, probabilities, rng) {
-  const counts = new Array(probabilities.length).fill(0);
-  let remainingN = Math.max(0, Math.floor(n));
-  let remainingP = probabilities.reduce((sum, p) => sum + Math.max(0, p), 0);
-  if (!remainingN || !(remainingP > 0)) return counts;
-  for (let i = 0; i < probabilities.length - 1 && remainingN > 0; i += 1) {
-    const raw = Math.max(0, probabilities[i]);
-    if (!(raw > 0)) continue;
-    const conditional = Math.min(1, raw / remainingP);
-    const k = sampleBinomial(remainingN, conditional, rng);
-    counts[i] = k;
-    remainingN -= k;
-    remainingP -= raw;
-    if (!(remainingP > 0)) break;
-  }
-  counts[counts.length - 1] += remainingN;
-  return counts;
 }
 
 function geometric(probability, rng) {
@@ -129,8 +81,7 @@ function clampLevel(value, max) {
 
 function skill(build, name) {
   const values = SKILLS[name];
-  const key = name === 'Speed' ? 'Speed' : name;
-  return values[clampLevel(build.skills?.[key], values.length - 1)] || 0;
+  return values[clampLevel(build.skills?.[name], values.length - 1)] || 0;
 }
 
 function chaska(points, rate) {
@@ -171,8 +122,8 @@ function baseLuck(build, weather, surgeActive) {
   luck += dungeonBonus(build, 'Luck');
   luck += chaska(build.chaska?.Luck, 0.25);
   if (build.modifiers?.quickdraw) luck *= 0.8;
-  const additivePercent = (build.modifiers?.heavyHand ? 20 : 0) + (surgeActive ? 25 : 0);
-  if (additivePercent) luck *= 1 + additivePercent / 100;
+  const percent = (build.modifiers?.heavyHand ? 20 : 0) + (surgeActive ? 25 : 0);
+  if (percent) luck *= 1 + percent / 100;
   return Math.max(0, luck);
 }
 
@@ -209,8 +160,8 @@ function borderProbabilities(build, weather, vicIndex) {
   const multipliers = baseBorderMultipliers(build, weather);
   const factors = vicIndex >= 0 ? VIC_STATES[vicIndex].factors : [1, 1, 1, 1];
   const rates = BN.map((name, i) => Math.min(1, Math.max(0, multipliers[name] * factors[i] / DATA.borders[name].denominator)));
-  const probs = new Array(16).fill(0);
-  for (let mask = 0; mask < 16; mask += 1) {
+  const probs = new Float64Array(MASK_COUNT);
+  for (let mask = 0; mask < MASK_COUNT; mask += 1) {
     let p = 1;
     for (let i = 0; i < BN.length; i += 1) p *= (mask & (1 << i)) ? rates[i] : (1 - rates[i]);
     probs[mask] = p;
@@ -219,7 +170,6 @@ function borderProbabilities(build, weather, vicIndex) {
 }
 
 function adjustedCardRarity(card, build, weather, weatherStructures) {
-  if (card.requiresBossPot && !build.modifiers?.bossPot) return null;
   if (card.weather && card.weather !== weather) return null;
   let rarity = Math.max(1e-12, Number(card.rarity) || 1);
   if (card.currentEvent) rarity *= Number(card.eventFactor) || 0.2;
@@ -234,13 +184,13 @@ function adjustedCardRarity(card, build, weather, weatherStructures) {
       rarity /= 1 + lvl / 5;
     }
   }
-  if (card.sin && build.modifiers?.bossPot) rarity *= DATA.bossPot.sinRarityFactor;
+  if (card.boss && build.modifiers?.bossPot) rarity /= 5;
   return Math.max(1e-12, rarity);
 }
 
 function makeCardDistribution(build, weather, surgeActive, diceActive, weatherStructures) {
   const luck = baseLuck(build, weather, surgeActive) * (diceActive ? 2 : 1);
-  const probabilities = new Array(CARDS.length).fill(0);
+  const probabilities = new Float64Array(CARDS.length);
   let remaining = 1;
   let fallback = -1;
   for (let i = 0; i < CARDS.length; i += 1) {
@@ -257,11 +207,57 @@ function makeCardDistribution(build, weather, surgeActive, diceActive, weatherSt
     }
   }
   if (remaining > 0 && fallback >= 0) probabilities[fallback] += remaining;
-  const sum = probabilities.reduce((a, b) => a + b, 0);
-  if (sum > 0 && Math.abs(sum - 1) > 1e-10) {
+  let sum = 0;
+  for (const p of probabilities) sum += p;
+  if (sum > 0 && Math.abs(sum - 1) > 1e-12) {
     for (let i = 0; i < probabilities.length; i += 1) probabilities[i] /= sum;
   }
   return probabilities;
+}
+
+function buildAlias(probabilities) {
+  const n = probabilities.length;
+  const prob = new Float64Array(n);
+  const alias = new Uint32Array(n);
+  const scaled = new Float64Array(n);
+  const small = [];
+  const large = [];
+  let sum = 0;
+  for (let i = 0; i < n; i += 1) sum += probabilities[i];
+  if (!(sum > 0)) throw new Error('No rollable outcomes for this simulation state.');
+  for (let i = 0; i < n; i += 1) {
+    scaled[i] = probabilities[i] * n / sum;
+    if (scaled[i] < 1) small.push(i); else large.push(i);
+  }
+  while (small.length && large.length) {
+    const s = small.pop();
+    const l = large.pop();
+    prob[s] = scaled[s];
+    alias[s] = l;
+    scaled[l] = scaled[l] + scaled[s] - 1;
+    if (scaled[l] < 1) small.push(l); else large.push(l);
+  }
+  while (large.length) prob[large.pop()] = 1;
+  while (small.length) prob[small.pop()] = 1;
+  return { prob, alias, n };
+}
+
+function sampleAlias(table, rng) {
+  const x = rng() * table.n;
+  const i = Math.min(table.n - 1, Math.floor(x));
+  return (x - i) < table.prob[i] ? i : table.alias[i];
+}
+
+function jointAlias(build, weather, surge, dice, vic, weatherStructures) {
+  const card = makeCardDistribution(build, weather, surge, dice, weatherStructures);
+  const borders = borderProbabilities(build, weather, vic);
+  const joint = new Float64Array(CARDS.length * MASK_COUNT);
+  let at = 0;
+  for (let c = 0; c < CARDS.length; c += 1) {
+    const cp = card[c];
+    for (let mask = 0; mask < MASK_COUNT; mask += 1) joint[at++] = cp * borders[mask];
+  }
+  return buildAlias(joint);
 }
 
 function weatherTimeline(config, totalSeconds) {
@@ -404,86 +400,67 @@ function parseGroupKey(key) {
   };
 }
 
-function borderMaskMultiplier(mask) {
-  let multiplier = 1;
-  for (let i = 0; i < BN.length; i += 1) if (mask & (1 << i)) multiplier *= DATA.borders[BN[i]].multiplier;
-  return multiplier;
-}
-
 function simulateRun(scenario, totalSeconds, seed) {
   const rng = mulberry32(seed);
   const build = scenario.build;
   const weatherStructures = scenario.weatherStructures || {};
   const rollState = simulateRollGroups(build, scenario.weather, totalSeconds, rng);
-  const cardTotals = new Array(CARDS.length).fill(0);
-  const cardByBorderKey = new Map();
-  const distCache = new Map();
+  const cardTotals = new Uint32Array(CARDS.length);
+  const cardMasksFlat = new Uint32Array(CARDS.length * MASK_COUNT);
+  const comboTotals = new Uint32Array(MASK_COUNT);
+  const borderTotals = new Uint32Array(BN.length);
+  const aliasCache = new Map();
+  let bestCardIndex = -1;
+  let bestMask = 0;
+  let bestEffective = -1;
+  let bestCount = 0;
 
   for (const [groupKey, n] of rollState.groups) {
     const state = parseGroupKey(groupKey);
-    const distKey = `${state.weather || 'Normal'}|${state.surge ? 1 : 0}|${state.dice ? 1 : 0}`;
-    let probs = distCache.get(distKey);
-    if (!probs) {
-      probs = makeCardDistribution(build, state.weather, state.surge, state.dice, weatherStructures);
-      distCache.set(distKey, probs);
+    let table = aliasCache.get(groupKey);
+    if (!table) {
+      table = jointAlias(build, state.weather, state.surge, state.dice, state.vic, weatherStructures);
+      aliasCache.set(groupKey, table);
     }
-    const counts = sampleMultinomial(n, probs, rng);
-    const borderKey = `${state.weather || 'Normal'}\u0001${state.vic}`;
-    let byCard = cardByBorderKey.get(borderKey);
-    if (!byCard) {
-      byCard = new Array(CARDS.length).fill(0);
-      cardByBorderKey.set(borderKey, byCard);
-    }
-    for (let i = 0; i < counts.length; i += 1) {
-      const count = counts[i];
-      if (!count) continue;
-      cardTotals[i] += count;
-      byCard[i] += count;
-    }
-  }
 
-  const cardMasks = Array.from({ length: CARDS.length }, () => new Array(16).fill(0));
-  const comboTotals = new Array(16).fill(0);
-  const borderTotals = new Array(BN.length).fill(0);
-  let bestPull = null;
+    for (let roll = 0; roll < n; roll += 1) {
+      const outcome = sampleAlias(table, rng);
+      const cardIndex = outcome >>> 4;
+      const mask = outcome & 15;
+      cardTotals[cardIndex] += 1;
+      cardMasksFlat[outcome] += 1;
+      comboTotals[mask] += 1;
+      for (let b = 0; b < BN.length; b += 1) if (mask & (1 << b)) borderTotals[b] += 1;
 
-  for (const [borderKey, counts] of cardByBorderKey) {
-    const [weatherRaw, vicRaw] = borderKey.split('\u0001');
-    const weather = weatherRaw === 'Normal' ? null : weatherRaw;
-    const vic = Number(vicRaw);
-    const probs = borderProbabilities(build, weather, vic);
-    for (let cardIndex = 0; cardIndex < counts.length; cardIndex += 1) {
-      const count = counts[cardIndex];
-      if (!count) continue;
-      const masks = sampleMultinomial(count, probs, rng);
-      for (let mask = 0; mask < masks.length; mask += 1) {
-        const amount = masks[mask];
-        if (!amount) continue;
-        cardMasks[cardIndex][mask] += amount;
-        comboTotals[mask] += amount;
-        for (let b = 0; b < BN.length; b += 1) if (mask & (1 << b)) borderTotals[b] += amount;
-        const effectiveRarity = CARDS[cardIndex].rarity * borderMaskMultiplier(mask);
-        if (!bestPull || effectiveRarity > bestPull.effectiveRarity) {
-          bestPull = { cardIndex, mask, effectiveRarity, count: amount };
-        } else if (bestPull.cardIndex === cardIndex && bestPull.mask === mask) {
-          bestPull.count += amount;
-        }
+      const effective = CARDS[cardIndex].rarity * MASK_MULTIPLIERS[mask];
+      if (effective > bestEffective) {
+        bestCardIndex = cardIndex;
+        bestMask = mask;
+        bestEffective = effective;
+        bestCount = 1;
+      } else if (effective === bestEffective && cardIndex === bestCardIndex && mask === bestMask) {
+        bestCount += 1;
       }
     }
   }
 
   let uniqueCards = 0;
   for (const count of cardTotals) if (count > 0) uniqueCards += 1;
+  const cardMasks = Array.from({ length: CARDS.length }, (_, cardIndex) => {
+    const start = cardIndex * MASK_COUNT;
+    return Array.from(cardMasksFlat.subarray(start, start + MASK_COUNT));
+  });
+
   return {
     seed,
     totalRolls: rollState.totalRolls,
     weatherRolls: rollState.weatherRolls,
     uniqueCards,
-    cardTotals,
+    cardTotals: Array.from(cardTotals),
     cardMasks,
-    borderTotals,
-    comboTotals,
-    bestPull,
+    borderTotals: Array.from(borderTotals),
+    comboTotals: Array.from(comboTotals),
+    bestPull: bestCardIndex >= 0 ? { cardIndex: bestCardIndex, mask: bestMask, effectiveRarity: bestEffective, count: bestCount } : null,
   };
 }
 
@@ -491,11 +468,11 @@ function aggregateRuns(runs) {
   const count = runs.length || 1;
   const cardTotals = new Array(CARDS.length).fill(0);
   const cardHitRuns = new Array(CARDS.length).fill(0);
-  const cardMasks = Array.from({ length: CARDS.length }, () => new Array(16).fill(0));
+  const cardMasks = Array.from({ length: CARDS.length }, () => new Array(MASK_COUNT).fill(0));
   const borderTotals = new Array(BN.length).fill(0);
   const borderHitRuns = new Array(BN.length).fill(0);
-  const comboTotals = new Array(16).fill(0);
-  const comboHitRuns = new Array(16).fill(0);
+  const comboTotals = new Array(MASK_COUNT).fill(0);
+  const comboHitRuns = new Array(MASK_COUNT).fill(0);
   const weatherRolls = {};
   let totalRolls = 0;
   let uniqueTotal = 0;
@@ -509,13 +486,13 @@ function aggregateRuns(runs) {
       const cardCount = run.cardTotals[i];
       cardTotals[i] += cardCount;
       if (cardCount > 0) cardHitRuns[i] += 1;
-      for (let mask = 0; mask < 16; mask += 1) cardMasks[i][mask] += run.cardMasks[i][mask];
+      for (let mask = 0; mask < MASK_COUNT; mask += 1) cardMasks[i][mask] += run.cardMasks[i][mask];
     }
     for (let i = 0; i < BN.length; i += 1) {
       borderTotals[i] += run.borderTotals[i];
       if (run.borderTotals[i] > 0) borderHitRuns[i] += 1;
     }
-    for (let mask = 0; mask < 16; mask += 1) {
+    for (let mask = 0; mask < MASK_COUNT; mask += 1) {
       comboTotals[mask] += run.comboTotals[mask];
       if (run.comboTotals[mask] > 0) comboHitRuns[mask] += 1;
     }
@@ -567,7 +544,7 @@ self.onmessage = (event) => {
       allResults.push({ aggregate: aggregateRuns(runs), runs });
     }
 
-    self.postMessage({ type: 'result', jobId, durationSeconds: totalSeconds, runCount, scenarios: allResults });
+    self.postMessage({ type: 'result', jobId, durationSeconds: totalSeconds, runCount, scenarios: allResults, exactRollSampling: true });
   } catch (error) {
     self.postMessage({ type: 'error', jobId, message: error?.message || String(error), stack: error?.stack || '' });
   }
