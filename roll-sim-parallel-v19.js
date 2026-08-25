@@ -199,7 +199,7 @@
       };
 
       for (let slot = 0; slot < concurrency; slot += 1) {
-        const worker = new NativeWorker('./roll-sim-worker-v19.js?rev=20260825-0030');
+        const worker = new NativeWorker('./roll-sim-worker-v19.js?rev=20260825-0156');
         this._workers.push(worker);
         worker.addEventListener('message', (event) => {
           if (failed || this._cancelled) return;
