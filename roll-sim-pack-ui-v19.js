@@ -11,63 +11,46 @@
       return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || a.localeCompare(b);
     });
   const counts = Object.fromEntries(allPacks.map((pack) => [pack, DATA.cards.filter((card) => card.pack === pack).length]));
-
   const selections = { A: new Set(allPacks), B: new Set(allPacks) };
 
-  function label(pack) {
-    return pack === 'Era2' ? 'Era 2' : pack;
+  const label = (pack) => pack === 'Era2' ? 'Era 2' : pack;
+
+  function syncGlobal() {
+    window.__rollSimPackSelectionsV19 = { A: [...selections.A], B: [...selections.B] };
   }
 
   function load() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE) || '{}');
       for (const key of ['A', 'B']) {
-        if (!Array.isArray(saved[key])) continue;
-        selections[key] = new Set(saved[key].filter((pack) => allPacks.includes(pack)));
+        if (Array.isArray(saved[key])) selections[key] = new Set(saved[key].filter((pack) => allPacks.includes(pack)));
       }
     } catch {}
     syncGlobal();
   }
 
   function save() {
-    try {
-      localStorage.setItem(STORAGE, JSON.stringify({ A: [...selections.A], B: [...selections.B] }));
-    } catch {}
+    try { localStorage.setItem(STORAGE, JSON.stringify({ A: [...selections.A], B: [...selections.B] })); } catch {}
     syncGlobal();
-  }
-
-  function syncGlobal() {
-    window.__rollSimPackSelectionsV19 = {
-      A: [...selections.A],
-      B: [...selections.B],
-    };
   }
 
   function packHtml(key, pack) {
     const checked = selections[key].has(pack);
-    return `
-      <label class="rs-pack-option${checked ? ' active' : ''}" data-rs-pack-option>
-        <input type="checkbox" data-rs-pack="${pack}" data-rs-pack-scenario="${key}"${checked ? ' checked' : ''}>
-        <span>${label(pack)}</span>
-        <small>${counts[pack]} cards</small>
-      </label>
-    `;
+    return `<label class="rs-pack-option${checked ? ' active' : ''}" data-rs-pack-option>
+      <input type="checkbox" data-rs-pack="${pack}" data-rs-pack-scenario="${key}"${checked ? ' checked' : ''}>
+      <span>${label(pack)}</span><small>${counts[pack]} cards</small>
+    </label>`;
   }
 
   function sectionHtml(key) {
-    return `
-      <div class="rs-pack-section" data-rs-pack-section="${key}">
-        <div class="rs-pack-head">
-          <div><span>Card Packs</span><small>Only selected packs enter the roll pool. Normal cards are always on.</small></div>
-          <div class="rs-pack-actions">
-            <button type="button" data-rs-pack-action="all" data-rs-pack-scenario="${key}">All</button>
-            <button type="button" data-rs-pack-action="none" data-rs-pack-scenario="${key}">None</button>
-          </div>
-        </div>
-        <div class="rs-pack-grid">${allPacks.map((pack) => packHtml(key, pack)).join('')}</div>
-        <div class="rs-pack-status" data-rs-pack-status="${key}"></div>
+    return `<div class="rs-pack-section" data-rs-pack-section="${key}">
+      <div class="rs-pack-head">
+        <div><span>Card Packs</span><small>Only selected packs enter the roll pool. Normal cards are always on.</small></div>
+        <div class="rs-pack-actions"><button type="button" data-rs-pack-action="all" data-rs-pack-scenario="${key}">All</button><button type="button" data-rs-pack-action="none" data-rs-pack-scenario="${key}">None</button></div>
       </div>
-    `;
+      <div class="rs-pack-grid">${allPacks.map((pack) => packHtml(key, pack)).join('')}</div>
+      <div class="rs-pack-status" data-rs-pack-status="${key}"></div>
+    </div>`;
   }
 
   function updateStatus(key) {
@@ -75,15 +58,13 @@
     if (!status) return;
     const selected = selections[key];
     const packCards = allPacks.reduce((sum, pack) => sum + (selected.has(pack) ? counts[pack] : 0), 0);
-    status.textContent = `${selected.size} / ${allPacks.length} packs on · ${packCards} pack cards enabled`;
+    const next = `${selected.size} / ${allPacks.length} packs on · ${packCards} pack cards enabled`;
+    if (status.textContent !== next) status.textContent = next;
   }
 
   function injectScenario(panel) {
     const key = panel.dataset.scenario === 'B' ? 'B' : 'A';
-    if (panel.querySelector(`[data-rs-pack-section="${key}"]`)) {
-      updateStatus(key);
-      return;
-    }
+    if (panel.querySelector(`[data-rs-pack-section="${key}"]`)) return;
     const build = panel.querySelector('.rs-build-summary');
     if (!build) return;
     build.insertAdjacentHTML('afterend', sectionHtml(key));
@@ -136,8 +117,7 @@
     const key = input.dataset.rsPackScenario === 'B' ? 'B' : 'A';
     const pack = input.dataset.rsPack;
     if (!allPacks.includes(pack)) return;
-    if (input.checked) selections[key].add(pack);
-    else selections[key].delete(pack);
+    if (input.checked) selections[key].add(pack); else selections[key].delete(pack);
     input.closest('[data-rs-pack-option]')?.classList.toggle('active', input.checked);
     save();
     updateStatus(key);
@@ -154,5 +134,5 @@
   injectStyles();
   patch();
   const scenarios = document.getElementById('rsScenarios');
-  if (scenarios) new MutationObserver(patch).observe(scenarios, { childList: true, subtree: true });
+  if (scenarios) new MutationObserver(patch).observe(scenarios, { childList: true });
 })();
