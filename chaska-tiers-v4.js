@@ -1,5 +1,6 @@
 (() => {
   const ROLLS_PER_POINT = 50_000;
+  const FILL_AMOUNT = 50;
   const FIELDS = [
     { id: 'uvChaskaLuck', label: 'Luck', className: 'luck' },
     { id: 'uvChaskaPlatinum', label: 'Platinum', className: 'platinum' },
@@ -110,12 +111,26 @@
     }
   }
 
+  // Fill adds one 50-point block at a time, stopping at the remaining earned points.
   function fill(id) {
     const input = $(id);
     if (!input) return;
-    const current = values();
-    const othersSpent = totalSpent(current) - current[id];
-    setInputValue(input, Math.max(0, earnedPoints() - othersSpent));
+    const available = availablePoints();
+    if (available <= 0) return;
+    addAmount(id, Math.min(FILL_AMOUNT, available));
+  }
+
+  function resetChaska() {
+    syncing = true;
+    for (const field of FIELDS) {
+      const input = $(field.id);
+      if (input) input.value = '0';
+    }
+    syncing = false;
+
+    const first = $(FIELDS[0].id);
+    if (first) dispatch(first);
+    else refresh();
   }
 
   function createDashboard(panel) {
@@ -126,13 +141,17 @@
     dashboard.id = 'uvChaskaTierDashboard';
     dashboard.className = 'uv-chaska-dashboard';
     dashboard.innerHTML = `
-      <div class="uv-chaska-status">
-        <div><span>Earned</span><strong id="uvChaskaEarned">0</strong></div>
-        <div><span>Spent</span><strong id="uvChaskaSpent">0</strong></div>
-        <div class="available"><span>Available</span><strong id="uvChaskaAvailable">0</strong></div>
+      <div class="uv-chaska-dashboard-head">
+        <div class="uv-chaska-status">
+          <div><span>Earned</span><strong id="uvChaskaEarned">0</strong></div>
+          <div><span>Spent</span><strong id="uvChaskaSpent">0</strong></div>
+          <div class="available"><span>Available</span><strong id="uvChaskaAvailable">0</strong></div>
+        </div>
+        <button type="button" id="uvChaskaReset" class="uv-chaska-reset">Reset</button>
       </div>
     `;
     title?.insertAdjacentElement('afterend', dashboard);
+    $('uvChaskaReset')?.addEventListener('click', resetChaska);
 
     const grid = panel.querySelector('.uv-chaska-grid');
     for (const field of FIELDS) {
@@ -148,7 +167,7 @@
       controls.innerHTML = `
         <button type="button" data-chaska-action="minus" aria-label="Remove one ${field.label} point">−</button>
         <button type="button" data-chaska-action="plus" aria-label="Add one ${field.label} point">+</button>
-        <button type="button" class="fill" data-chaska-action="fill">Fill</button>
+        <button type="button" class="fill" data-chaska-action="fill" aria-label="Add up to 50 ${field.label} points">Fill +50</button>
       `;
       label.append(controls);
 
@@ -182,6 +201,9 @@
       oldPoints.title = 'Chaska points spent / earned';
     }
 
+    const resetButton = $('uvChaskaReset');
+    if (resetButton) resetButton.disabled = spent <= 0;
+
     for (const field of FIELDS) {
       const input = $(field.id);
       if (!input) continue;
@@ -208,20 +230,24 @@
     style.id = 'chaska-tiers-v4-styles';
     style.textContent = `
       .uv-chaska-dashboard{display:grid;gap:10px;margin:-2px 0 12px}
+      .uv-chaska-dashboard-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch}
       .uv-chaska-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
       .uv-chaska-status>div{padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:var(--panel-2)}
       .uv-chaska-status span{display:block;color:var(--muted);font-size:.55rem;font-weight:850;letter-spacing:.06em;text-transform:uppercase}
       .uv-chaska-status strong{display:block;margin-top:3px;font-size:.83rem}
       .uv-chaska-status .available{border-color:color-mix(in srgb,var(--blue) 42%,var(--line))}
       .uv-chaska-status .available strong{color:var(--blue)}
+      .uv-chaska-reset{min-width:78px;padding:0 14px;border:1px solid var(--line);border-radius:9px;background:#0b0e13;color:#aab3bf;font-size:.62rem;font-weight:900;cursor:pointer}
+      .uv-chaska-reset:hover:not(:disabled){border-color:color-mix(in srgb,var(--ruby) 55%,var(--line));color:#fff}
+      .uv-chaska-reset:disabled{opacity:.35;cursor:not-allowed}
       .uv-chaska-tier-grid{gap:8px!important}
       .uv-chaska-stat-card{position:relative}
-      #upgradeCalcV2 .uv-builder-left .uv-chaska-controls{display:grid!important;grid-template-columns:36px 36px minmax(70px,1fr)!important;gap:6px!important;width:100%;min-width:0;margin-top:4px!important}
+      #upgradeCalcV2 .uv-builder-left .uv-chaska-controls{display:grid!important;grid-template-columns:36px 36px minmax(82px,1fr)!important;gap:6px!important;width:100%;min-width:0;margin-top:4px!important}
       #upgradeCalcV2 .uv-builder-left .uv-chaska-controls button{width:100%;min-width:0;min-height:31px;padding:0 6px!important;white-space:nowrap;border:1px solid var(--line);border-radius:7px;background:#0b0e13;color:#aab3bf;font-size:.62rem;font-weight:850;cursor:pointer}
       #upgradeCalcV2 .uv-builder-left .uv-chaska-controls button:hover:not(:disabled){border-color:var(--line-2);color:#fff}
       #upgradeCalcV2 .uv-builder-left .uv-chaska-controls button:disabled{opacity:.35;cursor:not-allowed}
       #upgradeCalcV2 .uv-builder-left .uv-chaska-controls .fill{color:var(--blue)}
-      @media(max-width:520px){.uv-chaska-status{grid-template-columns:1fr}}
+      @media(max-width:520px){.uv-chaska-dashboard-head{grid-template-columns:1fr}.uv-chaska-status{grid-template-columns:1fr}.uv-chaska-reset{min-height:36px}}
     `;
     document.head.append(style);
   }
