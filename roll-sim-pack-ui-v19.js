@@ -11,12 +11,15 @@
       return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi) || a.localeCompare(b);
     });
   const counts = Object.fromEntries(allPacks.map((pack) => [pack, DATA.cards.filter((card) => card.pack === pack).length]));
+  const raptureCount = DATA.cards.filter((card) => card.weather === 'Rapture').length;
   const selections = { A: new Set(allPacks), B: new Set(allPacks) };
+  const rapture24 = { A: false, B: false };
 
   const label = (pack) => pack === 'Era2' ? 'Era 2' : pack;
 
   function syncGlobal() {
     window.__rollSimPackSelectionsV19 = { A: [...selections.A], B: [...selections.B] };
+    window.__rollSimRapture24V25 = { A: !!rapture24.A, B: !!rapture24.B };
   }
 
   function load() {
@@ -25,12 +28,19 @@
       for (const key of ['A', 'B']) {
         if (Array.isArray(saved[key])) selections[key] = new Set(saved[key].filter((pack) => allPacks.includes(pack)));
       }
+      if (saved.rapture24 && typeof saved.rapture24 === 'object') {
+        for (const key of ['A', 'B']) if (typeof saved.rapture24[key] === 'boolean') rapture24[key] = saved.rapture24[key];
+      }
     } catch {}
     syncGlobal();
   }
 
   function save() {
-    try { localStorage.setItem(STORAGE, JSON.stringify({ A: [...selections.A], B: [...selections.B] })); } catch {}
+    try {
+      localStorage.setItem(STORAGE, JSON.stringify({
+        A: [...selections.A], B: [...selections.B], rapture24: { A: !!rapture24.A, B: !!rapture24.B },
+      }));
+    } catch {}
     syncGlobal();
   }
 
@@ -42,13 +52,21 @@
     </label>`;
   }
 
+  function raptureHtml(key) {
+    const checked = !!rapture24[key];
+    return `<label class="rs-pack-option rs-rapture-option${checked ? ' active' : ''}" data-rs-rapture-option>
+      <input type="checkbox" data-rs-rapture24 data-rs-pack-scenario="${key}"${checked ? ' checked' : ''}>
+      <span>Rapture</span><small>${raptureCount} cards · 24/7</small>
+    </label>`;
+  }
+
   function sectionHtml(key) {
     return `<div class="rs-pack-section" data-rs-pack-section="${key}">
       <div class="rs-pack-head">
-        <div><span>Card Packs</span><small>Only selected packs enter the roll pool. Normal cards are always on.</small></div>
+        <div><span>Card Packs</span><small>Selected packs enter the roll pool. Rapture lets Rapture cards roll 24/7.</small></div>
         <div class="rs-pack-actions"><button type="button" data-rs-pack-action="all" data-rs-pack-scenario="${key}">All</button><button type="button" data-rs-pack-action="none" data-rs-pack-scenario="${key}">None</button></div>
       </div>
-      <div class="rs-pack-grid">${allPacks.map((pack) => packHtml(key, pack)).join('')}</div>
+      <div class="rs-pack-grid">${allPacks.map((pack) => packHtml(key, pack)).join('')}${raptureHtml(key)}</div>
       <div class="rs-pack-status" data-rs-pack-status="${key}"></div>
     </div>`;
   }
@@ -58,7 +76,7 @@
     if (!status) return;
     const selected = selections[key];
     const packCards = allPacks.reduce((sum, pack) => sum + (selected.has(pack) ? counts[pack] : 0), 0);
-    const next = `${selected.size} / ${allPacks.length} packs on · ${packCards} pack cards enabled`;
+    const next = `${selected.size} / ${allPacks.length} packs on · ${packCards} pack cards enabled · Rapture 24/7 ${rapture24[key] ? 'ON' : 'OFF'}`;
     if (status.textContent !== next) status.textContent = next;
   }
 
@@ -77,11 +95,17 @@
 
   function setAll(key, enabled) {
     selections[key] = enabled ? new Set(allPacks) : new Set();
+    rapture24[key] = enabled;
     const section = root.querySelector(`[data-rs-pack-section="${key}"]`);
     section?.querySelectorAll('[data-rs-pack]').forEach((input) => {
       input.checked = enabled;
       input.closest('[data-rs-pack-option]')?.classList.toggle('active', enabled);
     });
+    const rapture = section?.querySelector('[data-rs-rapture24]');
+    if (rapture) {
+      rapture.checked = enabled;
+      rapture.closest('[data-rs-rapture-option]')?.classList.toggle('active', enabled);
+    }
     save();
     updateStatus(key);
   }
@@ -101,6 +125,7 @@
       #rollSimulatorV15 .rs-pack-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
       #rollSimulatorV15 .rs-pack-option{position:relative;display:grid;grid-template-columns:15px minmax(0,1fr);grid-template-rows:auto auto;column-gap:7px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;transition:border-color .12s ease,background .12s ease}
       #rollSimulatorV15 .rs-pack-option.active{border-color:color-mix(in srgb,var(--blue) 48%,var(--line));background:color-mix(in srgb,var(--panel) 88%,var(--blue) 12%)}
+      #rollSimulatorV15 .rs-rapture-option.active{border-color:color-mix(in srgb,var(--galaxy,#a78bfa) 58%,var(--line));background:color-mix(in srgb,var(--panel) 88%,var(--galaxy,#a78bfa) 12%)}
       #rollSimulatorV15 .rs-pack-option input{grid-row:1/3;width:14px;height:14px;margin:0;padding:0;accent-color:var(--blue)}
       #rollSimulatorV15 .rs-pack-option span{font-size:.62rem;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       #rollSimulatorV15 .rs-pack-option small{color:var(--muted);font-size:.52rem}
@@ -112,6 +137,16 @@
   }
 
   root.addEventListener('change', (event) => {
+    const raptureInput = event.target.closest('[data-rs-rapture24]');
+    if (raptureInput) {
+      const key = raptureInput.dataset.rsPackScenario === 'B' ? 'B' : 'A';
+      rapture24[key] = !!raptureInput.checked;
+      raptureInput.closest('[data-rs-rapture-option]')?.classList.toggle('active', raptureInput.checked);
+      save();
+      updateStatus(key);
+      return;
+    }
+
     const input = event.target.closest('[data-rs-pack]');
     if (!input) return;
     const key = input.dataset.rsPackScenario === 'B' ? 'B' : 'A';
