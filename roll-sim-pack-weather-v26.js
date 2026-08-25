@@ -16,6 +16,10 @@
       if (small.textContent !== text) small.textContent = text;
       option.title = weather ? `${weather} cards from this pack still require their matching weather. Rapture cards can use the Rapture 24/7 unlock.` : '';
     });
+    root.querySelectorAll('.rs-pack-status').forEach((status) => {
+      const next = status.textContent.replace('pack cards enabled', 'pack cards unlocked');
+      if (next !== status.textContent) status.textContent = next;
+    });
   }
 
   let scheduled = false;
