@@ -1,10 +1,11 @@
 (() => {
-  const THEMES = new Set(['default', 'scarlet', 'slate']);
+  const THEMES = new Set(['default', 'scarlet', 'slate', 'lava']);
   const STORAGE = 'crx-site-theme';
   const COLORS = {
     default: '#090b0f',
     scarlet: '#080406',
-    slate: '#171b21'
+    slate: '#171b21',
+    lava: '#090202'
   };
   const LAYER_ID = 'hitCalcBloodRain';
   const MAX_DROPS = 140;
@@ -146,6 +147,7 @@
         <button type="button" class="theme-choice" data-theme-choice="default"><i></i>Default</button>
         <button type="button" class="theme-choice" data-theme-choice="scarlet"><i></i>Scarlet</button>
         <button type="button" class="theme-choice" data-theme-choice="slate"><i></i>Slate</button>
+        <button type="button" class="theme-choice" data-theme-choice="lava"><i></i>Lava</button>
       </div>
     `;
 
