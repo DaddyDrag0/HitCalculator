@@ -1,5 +1,13 @@
 importScripts('./roll-sim-worker-v16.js?rev=20260824-2004');
 
+// Rapture cards are not affected by the Chaos weather structure.
+(() => {
+  const chaosWeathers = globalThis.ROLL_SIM_DATA_V16?.chaosWeathers;
+  if (!Array.isArray(chaosWeathers)) return;
+  const index = chaosWeathers.indexOf('Rapture');
+  if (index >= 0) chaosWeathers.splice(index, 1);
+})();
+
 // Keep the worker's Era 2 pool identical to the corrected main-thread pool.
 (() => {
   const cards = globalThis.ROLL_SIM_DATA_V16?.cards;
