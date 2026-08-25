@@ -3,10 +3,10 @@
   window.__rollSimSimplifyLoaderV22 = true;
 
   function loadRunUI() {
-    if (document.querySelector('script[data-roll-sim-run-ui-v24]')) return;
+    if (document.querySelector('script[data-roll-sim-run-ui-v26]')) return;
     const ui = document.createElement('script');
-    ui.src = './roll-sim-run-ui-v24.js?rev=20260825-0016';
-    ui.dataset.rollSimRunUiV24 = '1';
+    ui.src = './roll-sim-run-ui-v26.js?rev=20260825-0051';
+    ui.dataset.rollSimRunUiV26 = '1';
     document.head.append(ui);
   }
 
