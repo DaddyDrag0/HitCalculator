@@ -38,6 +38,43 @@
     });
   }
 
+  function removeBestPullRunHits(panel) {
+    const bestPanel = panel.querySelector('[data-result-panel="best"]');
+    const table = bestPanel?.querySelector('table.rs-table');
+    if (!table) return;
+    const headers = [...table.querySelectorAll('thead th')];
+    const index = headers.findIndex((th) => th.textContent.trim().toLowerCase() === 'runs hit');
+    if (index < 0) return;
+    table.querySelectorAll('tr').forEach((row) => row.children[index]?.remove());
+  }
+
+  function prioritizeBorders(panel) {
+    if (panel.dataset.rsPriorityPatched === '1') return;
+
+    const tabs = panel.querySelector('.rs-result-tabs');
+    const body = panel.querySelector('.rs-result-body');
+    const bordersButton = tabs?.querySelector('[data-rs-result-tab="borders"]');
+    const bestButton = tabs?.querySelector('[data-rs-result-tab="best"]');
+    const bordersPanel = body?.querySelector('[data-result-panel="borders"]');
+    const bestPanel = body?.querySelector('[data-result-panel="best"]');
+
+    if (tabs && bordersButton && bestButton && bordersButton !== tabs.firstElementChild) {
+      tabs.insertBefore(bordersButton, bestButton);
+    }
+    if (body && bordersPanel && bestPanel && bordersPanel !== body.firstElementChild) {
+      body.insertBefore(bordersPanel, bestPanel);
+    }
+
+    tabs?.querySelectorAll('[data-rs-result-tab]').forEach((button) => {
+      button.classList.toggle('active', button === bordersButton);
+    });
+    body?.querySelectorAll('[data-result-panel]').forEach((section) => {
+      section.hidden = section !== bordersPanel;
+    });
+
+    panel.dataset.rsPriorityPatched = '1';
+  }
+
   function patchResults() {
     const root = $('rollSimulatorV15');
     if (!root) return;
@@ -48,6 +85,11 @@
     root.querySelectorAll('.rs-summary-grid > div').forEach((box) => {
       const label = box.querySelector('span');
       if (label?.textContent.trim() === 'Avg Unique Cards') label.textContent = 'Avg Unique Card Types';
+    });
+
+    root.querySelectorAll('.rs-result-panel[data-result-scenario]').forEach((panel) => {
+      removeBestPullRunHits(panel);
+      prioritizeBorders(panel);
     });
 
     patchAverageColumns(root);
