@@ -29,7 +29,6 @@ importScripts('./roll-sim-worker-v16.js?rev=20260824-2004');
     { name:'Volcano Spirit', rarity:75000, pack:'Era2' },
     { name:'Zombie Dragon', rarity:11000000, pack:'Era2' },
   ];
-
   const byName = new Map(cards.map((card) => [card.name, card]));
   for (const source of ERA2) {
     const current = byName.get(source.name);
@@ -48,12 +47,16 @@ importScripts('./roll-sim-worker-v16.js?rev=20260824-2004');
   cards.sort((a, b) => (Number(b.rarity) || 0) - (Number(a.rarity) || 0) || String(a.name).localeCompare(String(b.name)));
 })();
 
-// Pack ownership and the Rapture 24/7 unlock are simulator-specific.
+// Pack ownership and weather availability are separate requirements.
+// A weather-gated pack card needs BOTH its pack and the matching weather.
+// Rapture 24/7 is the only exception: it satisfies the Rapture-weather requirement.
 const __rollSimBaseAdjustedCardRarity = adjustedCardRarity;
 adjustedCardRarity = function(card, build, weather, weatherStructures) {
   if (card?.pack && Array.isArray(build?.enabledPacks) && !build.enabledPacks.includes(card.pack)) return null;
-  if (card?.weather === 'Rapture' && build?.rapture24) {
-    return __rollSimBaseAdjustedCardRarity(card, build, 'Rapture', weatherStructures);
-  }
+
+  const raptureUnlocked = card?.weather === 'Rapture' && !!build?.rapture24;
+  if (card?.weather && !raptureUnlocked && card.weather !== weather) return null;
+
+  if (raptureUnlocked) return __rollSimBaseAdjustedCardRarity(card, build, 'Rapture', weatherStructures);
   return __rollSimBaseAdjustedCardRarity(card, build, weather, weatherStructures);
 };
