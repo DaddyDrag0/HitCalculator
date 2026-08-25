@@ -71,6 +71,11 @@
     return Array.isArray(configured) ? configured.filter((pack) => ALL_PACKS.includes(pack)) : ALL_PACKS.slice();
   }
 
+  function raptureForScenario(index) {
+    const key = index === 1 ? 'B' : 'A';
+    return !!window.__rollSimRapture24V25?.[key];
+  }
+
   class ParallelRollSimWorker {
     constructor() {
       this._messageListeners = new Set();
@@ -122,7 +127,11 @@
       const rawScenarios = Array.isArray(message.scenarios) ? message.scenarios : [];
       const scenarios = rawScenarios.slice(0, 1).map((scenario, index) => ({
         ...scenario,
-        build: { ...(scenario?.build || {}), enabledPacks: packsForScenario(index) },
+        build: {
+          ...(scenario?.build || {}),
+          enabledPacks: packsForScenario(index),
+          rapture24: raptureForScenario(index),
+        },
       }));
       const requestedRuns = Number(message.runs);
       const runCount = RUN_OPTIONS.includes(requestedRuns) ? requestedRuns : 1;
@@ -190,7 +199,7 @@
       };
 
       for (let slot = 0; slot < concurrency; slot += 1) {
-        const worker = new NativeWorker('./roll-sim-worker-v19.js?rev=20260824-2004');
+        const worker = new NativeWorker('./roll-sim-worker-v19.js?rev=20260825-0030');
         this._workers.push(worker);
         worker.addEventListener('message', (event) => {
           if (failed || this._cancelled) return;
