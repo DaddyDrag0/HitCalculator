@@ -1,6 +1,43 @@
 (() => {
   const $ = (id) => document.getElementById(id);
 
+  function percentText(value) {
+    const pct = Math.max(0, value * 100);
+    const digits = pct >= 10 ? 1 : pct >= 1 ? 2 : 3;
+    return `${pct.toFixed(digits).replace(/\.0+$/, '').replace(/(\.\d*?[1-9])0+$/, '$1')}%`;
+  }
+
+  function patchAverageColumns(root) {
+    root.querySelectorAll('table.rs-table').forEach((table) => {
+      const headers = [...table.querySelectorAll('thead th')];
+      const avgIndex = headers.findIndex((th) => th.textContent.trim().toLowerCase() === 'avg / run');
+      if (avgIndex < 0) return;
+      table.querySelectorAll('tbody tr').forEach((row) => {
+        const cell = row.children[avgIndex];
+        if (!cell || cell.dataset.rsAvgFormatted === '1') return;
+        const raw = cell.textContent.trim().replace(/,/g, '');
+        if (/^\d*\.?\d+$/.test(raw)) {
+          const value = Number(raw);
+          if (Number.isFinite(value) && value >= 0 && value < 1) {
+            cell.textContent = percentText(value);
+            cell.title = `${raw} average pulls per run`;
+          }
+        }
+        cell.dataset.rsAvgFormatted = '1';
+      });
+    });
+
+    root.querySelectorAll('.rs-border-stat small,.rs-border-none small').forEach((small) => {
+      if (small.dataset.rsAvgFormatted === '1') return;
+      const match = small.textContent.match(/^([\d,.]+)\s+avg\/run(.*)$/i);
+      if (match) {
+        const value = Number(match[1].replace(/,/g, ''));
+        if (Number.isFinite(value) && value >= 0 && value < 1) small.textContent = `${percentText(value)} chance/run${match[2]}`;
+      }
+      small.dataset.rsAvgFormatted = '1';
+    });
+  }
+
   function patchResults() {
     const root = $('rollSimulatorV15');
     if (!root) return;
@@ -8,12 +45,19 @@
     root.querySelectorAll('[data-rs-result-tab="cards"]').forEach((button) => button.remove());
     root.querySelectorAll('[data-result-panel="cards"]').forEach((panel) => panel.remove());
 
+    root.querySelectorAll('.rs-summary-grid > div').forEach((box) => {
+      const label = box.querySelector('span');
+      if (label?.textContent.trim() === 'Avg Unique Cards') label.textContent = 'Avg Unique Card Types';
+    });
+
+    patchAverageColumns(root);
+
     const runSettings = root.querySelector('.rs-run-settings');
     if (runSettings && !root.querySelector('#rsExactRollNotice')) {
       const notice = document.createElement('div');
       notice.id = 'rsExactRollNotice';
       notice.className = 'rs-exact-roll-notice';
-      notice.innerHTML = '<strong>Roll-by-roll RNG</strong><span>Every simulated roll now receives its own random card + border result. State timelines are precomputed only for speed.</span>';
+      notice.innerHTML = '<strong>Roll-by-roll RNG</strong><span>Each roll gets its own random card + border result. Multi-run batches use several CPU workers at once.</span>';
       const runBar = runSettings.querySelector('.rs-run-bar');
       if (runBar) runBar.insertAdjacentElement('beforebegin', notice);
       else runSettings.append(notice);
