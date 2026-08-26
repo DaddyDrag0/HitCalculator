@@ -1,4 +1,4 @@
-importScripts('./roll-sim-worker-v19.js?rev=20260826-1632');
+importScripts('./roll-sim-worker-v19.js?rev=20260826-1638');
 
 // High-end RNG fix:
 // - Cards are sampled from the exact sequential card distribution.
