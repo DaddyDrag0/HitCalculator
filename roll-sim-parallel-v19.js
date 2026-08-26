@@ -114,6 +114,7 @@
     terminate() {
       this._cancelled = true;
       for (const worker of this._workers) {
+        try { if (worker.__rollTimer) clearTimeout(worker.__rollTimer); } catch {}
         try { worker.terminate(); } catch {}
       }
       this._workers.length = 0;
@@ -158,6 +159,7 @@
         if (failed || this._cancelled) return;
         failed = true;
         for (const worker of this._workers) {
+          try { if (worker.__rollTimer) clearTimeout(worker.__rollTimer); } catch {}
           try { worker.terminate(); } catch {}
         }
         this._workers.length = 0;
@@ -167,6 +169,7 @@
       const maybeFinish = () => {
         if (failed || this._cancelled || completed !== tasks.length) return;
         for (const worker of this._workers) {
+          try { if (worker.__rollTimer) clearTimeout(worker.__rollTimer); } catch {}
           try { worker.terminate(); } catch {}
         }
         this._workers.length = 0;
@@ -185,6 +188,10 @@
 
       const assign = (worker) => {
         if (failed || this._cancelled) return;
+        if (worker.__rollTimer) {
+          clearTimeout(worker.__rollTimer);
+          worker.__rollTimer = null;
+        }
         if (nextTask >= tasks.length) {
           maybeFinish();
           return;
@@ -192,6 +199,11 @@
         const taskIndex = nextTask++;
         const task = tasks[taskIndex];
         worker.__rollTask = { ...task, taskIndex };
+        if (quickMode) {
+          worker.__rollTimer = setTimeout(() => {
+            finishError(`Quick simulation stalled on run ${taskIndex + 1}. Please retry or switch to Normal.`);
+          }, 20000);
+        }
         worker.postMessage({
           type: 'run',
           jobId: taskIndex + 1,
@@ -202,10 +214,14 @@
       };
 
       for (let slot = 0; slot < concurrency; slot += 1) {
-        const worker = new NativeWorker('./roll-sim-worker-v35.js?rev=20260826-1715');
+        const worker = new NativeWorker('./roll-sim-worker-v36.js?rev=20260826-1734');
         this._workers.push(worker);
         worker.addEventListener('message', (event) => {
           if (failed || this._cancelled) return;
+          if (worker.__rollTimer) {
+            clearTimeout(worker.__rollTimer);
+            worker.__rollTimer = null;
+          }
           const data = event.data || {};
           if (data.type === 'error') {
             finishError(data.message);
