@@ -58,14 +58,18 @@
   document.addEventListener('input', guardEvent, true);
   document.addEventListener('change', guardEvent, true);
 
+  let observer = null;
   function attach() {
     const input = document.getElementById('uvRolls');
-    if (input) applyInputGuard(input);
+    if (!input) return false;
+    applyInputGuard(input);
+    observer?.disconnect();
+    observer = null;
+    return true;
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attach, { once: true });
-  else attach();
-
-  const observer = new MutationObserver(() => attach());
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  if (!attach()) {
+    observer = new MutationObserver(() => attach());
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
 })();
