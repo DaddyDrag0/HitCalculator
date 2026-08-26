@@ -199,7 +199,7 @@
       };
 
       for (let slot = 0; slot < concurrency; slot += 1) {
-        const worker = new NativeWorker('./roll-sim-worker-v30.js?rev=20260826-1632');
+        const worker = new NativeWorker('./roll-sim-worker-v30.js?rev=20260826-1638');
         this._workers.push(worker);
         worker.addEventListener('message', (event) => {
           if (failed || this._cancelled) return;
@@ -213,6 +213,10 @@
           const run = data.scenarios?.[0]?.runs?.[0];
           if (!task || !run) {
             finishError('A simulation worker returned an incomplete run.');
+            return;
+          }
+          if (run.cardTotals?.length !== CARDS.length || run.cardMasks?.length !== CARDS.length) {
+            finishError('Simulator files are out of date. Refresh the page and run the simulation again.');
             return;
           }
           results[task.scenarioIndex][task.runIndex] = run;
