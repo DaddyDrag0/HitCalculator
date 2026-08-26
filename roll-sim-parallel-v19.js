@@ -123,6 +123,7 @@
       if (!message || message.type !== 'run') return;
       this.terminate();
       this._cancelled = false;
+      const quickMode = !!window.__rollSimQuickModeV34;
 
       const rawScenarios = Array.isArray(message.scenarios) ? message.scenarios : [];
       const scenarios = rawScenarios.slice(0, 1).map((scenario, index) => ({
@@ -131,6 +132,7 @@
           ...(scenario?.build || {}),
           enabledPacks: packsForScenario(index),
           rapture24: raptureForScenario(index),
+          quickMode,
         },
       }));
       const requestedRuns = Number(message.runs);
@@ -173,6 +175,7 @@
           jobId: message.jobId,
           durationSeconds: message.durationSeconds,
           runCount,
+          quickMode,
           scenarios: results.map((runs) => ({ aggregate: aggregateRuns(runs), runs })),
           parallelWorkers: concurrency,
         };
@@ -199,7 +202,7 @@
       };
 
       for (let slot = 0; slot < concurrency; slot += 1) {
-        const worker = new NativeWorker('./roll-sim-worker-v30.js?rev=20260826-1648');
+        const worker = new NativeWorker('./roll-sim-worker-v35.js?rev=20260826-1715');
         this._workers.push(worker);
         worker.addEventListener('message', (event) => {
           if (failed || this._cancelled) return;
