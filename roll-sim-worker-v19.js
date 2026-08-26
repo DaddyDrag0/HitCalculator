@@ -57,7 +57,7 @@ importScripts('./roll-sim-worker-v16.js?rev=20260825-1756');
 
 // Expired event cards stay in the master list so card indexes never shift,
 // but they are explicitly marked as unrollable.
-importScripts('./roll-sim-event-expiry-v32.js?rev=20260826-1632');
+importScripts('./roll-sim-event-expiry-v32.js?rev=20260826-1638');
 
 // Pack ownership and weather availability are separate requirements.
 // A weather-gated pack card needs BOTH its pack and the matching weather.
