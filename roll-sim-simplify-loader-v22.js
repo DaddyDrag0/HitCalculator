@@ -5,7 +5,7 @@
   function loadRunUI() {
     if (document.querySelector('script[data-roll-sim-run-ui-v26]')) return;
     const ui = document.createElement('script');
-    ui.src = './roll-sim-run-ui-v26.js?rev=20260825-0051';
+    ui.src = './roll-sim-run-ui-v26.js?rev=20260826-1648';
     ui.dataset.rollSimRunUiV26 = '1';
     document.head.append(ui);
   }
@@ -14,7 +14,7 @@
     if (!document.getElementById('rollSimulatorV15')) return false;
     if (document.querySelector('script[data-roll-sim-simplify-v22]')) return true;
     const script = document.createElement('script');
-    script.src = './roll-sim-simplify-v21.js?rev=20260824-2358';
+    script.src = './roll-sim-simplify-v21.js?rev=20260826-1648';
     script.dataset.rollSimSimplifyV22 = '1';
     script.addEventListener('load', loadRunUI, { once: true });
     document.head.append(script);
