@@ -21,7 +21,7 @@
       html=html.replace(/const version = "[^"]+";/,`const version = "${version}";`);
       const bootstrap='<scr'+'ipt id="hit-calc-theme-bootstrap">(()=>{const valid=new Set([\'default\',\'scarlet\',\'slate\',\'lava\']);let theme=\'default\';try{const saved=localStorage.getItem(\'crx-site-theme\');if(valid.has(saved))theme=saved}catch{}document.documentElement.dataset.theme=theme})();</scr'+'ipt>\n';
       html=html.replace('  <link rel="stylesheet"',bootstrap+'  <link rel="stylesheet"');
-      html=html.replace('</body>','<scr'+'ipt src="./fast-estimate-test-v1.js?rev=20260826-2148"></scr'+'ipt></body>');
+      html=html.replace('</body>','<scr'+'ipt src="./fast-estimate-test-v2.js?rev=20260826-2202"></scr'+'ipt></body>');
       document.open();
       document.write(html);
       document.close();
