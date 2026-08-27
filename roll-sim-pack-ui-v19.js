@@ -83,9 +83,11 @@
   function injectScenario(panel) {
     const key = panel.dataset.scenario === 'B' ? 'B' : 'A';
     if (panel.querySelector(`[data-rs-pack-section="${key}"]`)) return;
+    const weatherEnd = panel.querySelector(':scope > .rs-advanced');
     const build = panel.querySelector('.rs-build-summary');
-    if (!build) return;
-    build.insertAdjacentHTML('afterend', sectionHtml(key));
+    if (weatherEnd) weatherEnd.insertAdjacentHTML('afterend', sectionHtml(key));
+    else if (build) build.insertAdjacentHTML('afterend', sectionHtml(key));
+    else return;
     updateStatus(key);
   }
 
