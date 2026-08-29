@@ -12,8 +12,10 @@
       const response=await fetch(sourceUrl,{cache:'no-store'});if(!response.ok)throw new Error(`HTTP ${response.status}`);
       let source=await response.text();
       const patches=window.__OPT_V4_PATCHES||[];
+      if(patches.length<3)throw new Error('Optimizer patches did not all load.');
       const tools={replaceRequired,replaceSection};
       for(const patch of patches)source=patch(source,tools);
+      new Function(source);
       (0,eval)(`${source}\n//# sourceURL=optimizer-builds-v4-runtime.js`);
     }catch(error){fail(error?.message||String(error));}
   }
