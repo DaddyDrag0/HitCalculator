@@ -1,10 +1,16 @@
-// Test-branch build check for the optimizer runtime patches.
+// Build check for the optimizer runtime patches.
 const fs = require('fs');
 const vm = require('vm');
 
 global.window = global;
 global.__OPT_V4_PATCHES = [];
-for (const file of ['optimizer-v4-patch-chaska.js','optimizer-v4-patch-engine.js','optimizer-v4-patch-ui.js']) {
+for (const file of [
+  'optimizer-v4-patch-chaska.js',
+  'optimizer-v4-patch-engine.js',
+  'optimizer-v4-patch-ui.js',
+  'optimizer-v5-third-relic.js',
+  'optimizer-v5-patch-ui.js',
+]) {
   vm.runInThisContext(fs.readFileSync(file, 'utf8'), { filename: file });
 }
 
@@ -27,6 +33,7 @@ new Function(source);
 const required = [
   '<option value="borders">Border Combination</option><option value="targetRarity">Target Card Rarity</option>',
   'id="optRelicSlots"',
+  '<option value="3">3 Relics</option>',
   'id="optRelicQuickdraw"',
   'id="optRelicHeavyHand"',
   'id="optRelicVicissitudes"',
@@ -36,12 +43,14 @@ const required = [
   "{key:'dice',id:'uvDice'",
   "surge:set.has('surge')",
   "dice:set.has('dice')",
-  'const CHASKA_TIER_GAP = 50;',
+  'const CHASKA_TIER = 50;',
+  'function requiredChaskaFloor(value)',
+  'Math.floor((value-1)/CHASKA_TIER)*CHASKA_TIER',
   'That target is above the highest currently obtainable final rarity',
   '<strong>Optimizer</strong>',
   '<strong>Builds</strong>',
 ];
-for (const needle of required) if (!source.includes(needle)) throw new Error(`Required v4 output missing: ${needle}`);
+for (const needle of required) if (!source.includes(needle)) throw new Error(`Required optimizer output missing: ${needle}`);
 
 const forbidden = [
   '<option value="mostRolls">Most Rolls / Cards</option>',
@@ -49,7 +58,8 @@ const forbidden = [
   '<option value="overall">Best Overall</option>',
   '<div class="opt-why">',
   '<span>01</span><strong>Goal</strong>',
+  `<div><b>Chaska</b><div>${'${'}lockGrid('chaska',CHASKA)}</div></div>`,
 ];
-for (const needle of forbidden) if (source.includes(needle)) throw new Error(`Old optimizer UI still present: ${needle}`);
+for (const needle of forbidden) if (source.includes(needle)) throw new Error(`Old optimizer UI/rule still present: ${needle}`);
 
-console.log('Optimizer v4 patched source compiled and assertions passed.');
+console.log('Optimizer patched source compiled and assertions passed.');
