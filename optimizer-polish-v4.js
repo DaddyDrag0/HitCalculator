@@ -24,10 +24,10 @@
       #optimizerCalcV1 .opt-simple-head>strong,
       #savedBuildsV1 .opt-simple-head>strong{
         color:var(--muted)!important;
-        font-size:.76rem!important;
+        font-size:.8rem!important;
         font-weight:900!important;
-        letter-spacing:.07em!important;
-        text-transform:uppercase!important;
+        letter-spacing:.02em!important;
+        text-transform:none!important;
       }
       #optimizerCalcV1 .opt-panel-title>span{display:none!important}
       #optimizerCalcV1 .opt-run-row{justify-content:flex-start}
