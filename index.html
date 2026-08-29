@@ -11,7 +11,7 @@
   <div class="boot">Loading Hit Calc…</div>
   <script>
   (async()=>{
-    const version='20260829-optimizer10';
+    const version='20260829-optimizer11';
     try{
       const response=await fetch(`./index-base.html?rev=${version}`,{cache:'no-store'});
       if(!response.ok)throw new Error(`HTTP ${response.status}`);
@@ -19,6 +19,7 @@
       html=html.replace(/styles\.css\?v=[^"']+/g,`styles.css?v=${version}&theme=lava1`);
       html=html.replace(/app\.js\?v=[^"']+/g,`app.js?v=${version}&theme=lava1`);
       html=html.replace(/const version = "[^"]+";/,`const version = "${version}";`);
+      html=html.replace('</head>',`<script>window.__HIT_CALC_VERSION__=${JSON.stringify(version)};<\/script></head>`);
       const bootstrap='<scr'+'ipt id="hit-calc-theme-bootstrap">(()=>{const valid=new Set([\'default\',\'scarlet\',\'slate\',\'lava\']);let theme=\'default\';try{const saved=localStorage.getItem(\'crx-site-theme\');if(valid.has(saved))theme=saved}catch{}document.documentElement.dataset.theme=theme})();</scr'+'ipt>\n';
       html=html.replace('  <link rel="stylesheet"',bootstrap+'  <link rel="stylesheet"');
       document.open();
