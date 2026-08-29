@@ -1,3 +1,4 @@
+// Test-branch build check for the optimizer runtime patches.
 const fs = require('fs');
 const vm = require('vm');
 
