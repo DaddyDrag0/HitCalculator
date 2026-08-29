@@ -2,7 +2,7 @@ name: Optimizer Test
 
 on:
   push:
-    branches: [optimizer-test]
+    branches: [main, optimizer-test]
   workflow_dispatch:
 
 permissions:
@@ -16,5 +16,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate optimizer v4 patches
+      - name: Validate optimizer patches
         run: node optimizer-v4-selftest.cjs
