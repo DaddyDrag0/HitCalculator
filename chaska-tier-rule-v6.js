@@ -1,5 +1,5 @@
 (() => {
-  const GAP = 50;
+  const TIER = 50;
   const IDS = ['uvChaskaLuck','uvChaskaPlatinum','uvChaskaCrystal','uvChaskaGalaxy'];
   const $ = (id) => document.getElementById(id);
   let syncing = false;
@@ -16,9 +16,13 @@
     return IDS.reduce((sum, id) => sum + (next[id] || 0), 0);
   }
 
+  // Chaska unlocks in 50-point stages. A stat may reach 50 while the others
+  // are below 50, but it may not go to 51 until every other stat has reached
+  // 50. Likewise, 101 requires every other stat to have reached 100, etc.
   function tierCeiling(id, next = values()) {
     const others = IDS.filter((other) => other !== id).map((other) => Math.max(0, Math.floor(Number(next[other]) || 0)));
-    return (others.length ? Math.min(...others) : 0) + GAP;
+    const lowestOther = others.length ? Math.min(...others) : 0;
+    return (Math.floor(lowestOther / TIER) + 1) * TIER;
   }
 
   function maxFor(id, next = values()) {
@@ -30,13 +34,14 @@
   function normalize(next) {
     const out = Object.fromEntries(IDS.map((id) => [id, Math.max(0, Math.floor(Number(next[id]) || 0))]));
 
-    // Chaska tier rule: the highest stat may only be 50 above the lowest stat.
+    // Clamp only at the current 50-point milestone. Example: if the lowest
+    // Chaska stat is 99, every stat is capped at 100; once all four reach 100,
+    // each stat may progress toward 150.
     const low = Math.min(...IDS.map((id) => out[id]));
-    const ceiling = low + GAP;
+    const ceiling = (Math.floor(low / TIER) + 1) * TIER;
     for (const id of IDS) out[id] = Math.min(out[id], ceiling);
 
-    // Keep the allocation inside earned Chaska points. Reducing a highest value
-    // cannot make a valid 50-point spread invalid.
+    // Keep the allocation inside earned Chaska points.
     let over = total(out) - earned();
     while (over > 0) {
       let id = IDS[0];
@@ -47,9 +52,10 @@
       over -= remove;
     }
 
-    // A large resource clamp can create a new low value. Re-apply the tier rule.
+    // A resource clamp can lower the milestone floor, so apply the stage rule
+    // once more after removing excess points.
     const finalLow = Math.min(...IDS.map((id) => out[id]));
-    const finalCeiling = finalLow + GAP;
+    const finalCeiling = (Math.floor(finalLow / TIER) + 1) * TIER;
     for (const id of IDS) out[id] = Math.min(out[id], finalCeiling);
     return out;
   }
@@ -102,7 +108,7 @@
       if (fill) fill.disabled = available <= 0 || value >= allowedMax;
       card?.classList.toggle('tier-gated', blockedByTier);
       if (card) {
-        if (blockedByTier) card.dataset.tierGate = `Raise the other Chaska stats before going above ${tierMax}`;
+        if (blockedByTier) card.dataset.tierGate = `Raise every other Chaska stat to ${tierMax} before going above ${tierMax}`;
         else card.removeAttribute('data-tier-gate');
       }
     }
@@ -152,7 +158,7 @@
     const note = document.createElement('div');
     note.id = 'uvChaskaTierRuleNote';
     note.className = 'uv-chaska-tier-rule-note';
-    note.textContent = 'Tier rule: a Chaska stat can be at most 50 points ahead of the lowest Chaska stat. Example: 50 / 0 / 0 / 0 is allowed; to go above 50, all four must first reach 50.';
+    note.textContent = 'Tier rule: each 50-point milestone must be reached by all four Chaska stats before any stat can enter the next tier. Example: 50 / 0 / 0 / 0 is allowed, but 51 requires the other three stats to be at least 50; 101 requires them to be at least 100.';
     dashboard.append(note);
   }
 
