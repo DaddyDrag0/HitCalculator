@@ -13,6 +13,7 @@ for (const file of [
   'optimizer-v6-target-first.js',
   'optimizer-v7-deep-sim.js',
   'optimizer-v8-async-click-fix.js',
+  'optimizer-v9-ultra-deep.js',
 ]) {
   vm.runInThisContext(fs.readFileSync(file, 'utf8'), { filename: file });
 }
@@ -57,7 +58,14 @@ const required = [
   'function validateFinalists(',
   "new Worker('./roll-sim-worker-v30.js?rev=20260829-optdeep1')",
   'Math.min(172800',
-  "settings.seconds>86400?3:5",
+  "settings.seconds>86400?12:20",
+  'for (let round=0;round<8;round+=1)',
+  'rankUniqueCandidates(seeds,scoreFn,40)',
+  'ranked.slice(0,Math.min(20,ranked.length))',
+  'return ranked.slice(0,20)',
+  'Math.min(26,quickRelics.length)',
+  '.slice(0,10);',
+  "Ultra deep search ",
   "$('optRun')?.addEventListener('click',()=>{ runOptimizer(); });",
 ];
 for (const needle of required) if (!source.includes(needle)) throw new Error(`Required optimizer output missing: ${needle}`);
@@ -70,7 +78,9 @@ const forbidden = [
   '<span>01</span><strong>Goal</strong>',
   `<div><b>Chaska</b><div>${'${'}lockGrid('chaska',CHASKA)}</div></div>`,
   "$('optRun')?.addEventListener('click',()=>{ const b=$('optRun'); b.disabled=true;",
+  "settings.seconds>86400?3:5",
+  "const chosenRelics=quickRelics.slice(0,Math.min(6,quickRelics.length));",
 ];
 for (const needle of forbidden) if (source.includes(needle)) throw new Error(`Old optimizer UI/rule still present: ${needle}`);
 
-console.log('Optimizer patched source compiled and assertions passed.');
+console.log('Optimizer patched source compiled and ultra-deep assertions passed.');
