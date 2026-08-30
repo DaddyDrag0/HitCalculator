@@ -10,6 +10,8 @@ for (const file of [
   'optimizer-v4-patch-ui.js',
   'optimizer-v5-third-relic.js',
   'optimizer-v5-patch-ui.js',
+  'optimizer-v6-target-first.js',
+  'optimizer-v7-deep-sim.js',
 ]) {
   vm.runInThisContext(fs.readFileSync(file, 'utf8'), { filename: file });
 }
@@ -31,7 +33,7 @@ for (const patch of global.__OPT_V4_PATCHES) source = patch(source, { replaceReq
 new Function(source);
 
 const required = [
-  '<option value="borders">Border Combination</option><option value="targetRarity">Target Card Rarity</option>',
+  '<option value="targetRarity">Target Card Rarity</option><option value="borders">Border Combination</option>',
   'id="optRelicSlots"',
   '<option value="3">3 Relics</option>',
   'id="optRelicQuickdraw"',
@@ -49,6 +51,12 @@ const required = [
   'That target is above the highest currently obtainable final rarity',
   '<strong>Optimizer</strong>',
   '<strong>Builds</strong>',
+  'async function runOptimizer()',
+  'function deepSearchCandidates(',
+  'function validateFinalists(',
+  "new Worker('./roll-sim-worker-v30.js?rev=20260829-optdeep1')",
+  'Math.min(172800',
+  "settings.seconds>86400?3:5",
 ];
 for (const needle of required) if (!source.includes(needle)) throw new Error(`Required optimizer output missing: ${needle}`);
 
