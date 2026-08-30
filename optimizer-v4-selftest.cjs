@@ -12,6 +12,7 @@ for (const file of [
   'optimizer-v5-patch-ui.js',
   'optimizer-v6-target-first.js',
   'optimizer-v7-deep-sim.js',
+  'optimizer-v8-async-click-fix.js',
 ]) {
   vm.runInThisContext(fs.readFileSync(file, 'utf8'), { filename: file });
 }
@@ -57,6 +58,7 @@ const required = [
   "new Worker('./roll-sim-worker-v30.js?rev=20260829-optdeep1')",
   'Math.min(172800',
   "settings.seconds>86400?3:5",
+  "$('optRun')?.addEventListener('click',()=>{ runOptimizer(); });",
 ];
 for (const needle of required) if (!source.includes(needle)) throw new Error(`Required optimizer output missing: ${needle}`);
 
@@ -67,6 +69,7 @@ const forbidden = [
   '<div class="opt-why">',
   '<span>01</span><strong>Goal</strong>',
   `<div><b>Chaska</b><div>${'${'}lockGrid('chaska',CHASKA)}</div></div>`,
+  "$('optRun')?.addEventListener('click',()=>{ const b=$('optRun'); b.disabled=true;",
 ];
 for (const needle of forbidden) if (source.includes(needle)) throw new Error(`Old optimizer UI/rule still present: ${needle}`);
 
