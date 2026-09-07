@@ -23,8 +23,8 @@ jobs:
 
           p=Path('roll-sim-video-game-v34.js')
           s=p.read_text()
-          needle="            if (Array.isArray(DATA.currentEvents)) DATA.currentEvents.splice(0, DATA.currentEvents.length, ...currentEvents.map((card) => card.name));\n"
-          repl="            for (const card of DATA.cards) if (card.pack === 'Video Game') card.rollRequirement = 25000000;\n"+needle
+          needle="  if (Array.isArray(DATA.currentEvents)) DATA.currentEvents.splice(0, DATA.currentEvents.length, ...currentEvents.map((card) => card.name));"
+          repl="  for (const card of DATA.cards) if (card.pack === 'Video Game') card.rollRequirement = 25000000;\n"+needle
           if needle not in s: raise SystemExit('Video Game data insertion point missing')
           p.write_text(s.replace(needle,repl,1))
 
@@ -37,7 +37,8 @@ jobs:
 
           p=Path('roll-sim-pack-ui-v19.js')
           s=p.read_text()
-          s=s.replace("const ORDER = ['Anime', 'Egypt', 'Rising Sun', 'Immortal', 'Prehistoric', 'Cryptid', 'Era2'];","const ORDER = ['Anime', 'Egypt', 'Rising Sun', 'Immortal', 'Prehistoric', 'Cryptid', 'Era2', 'Video Game'];")
+          old="const ORDER = ['Anime', 'Egypt', 'Rising Sun', 'Immortal', 'Prehistoric', 'Cryptid', 'Era2'];"
+          if old in s: s=s.replace(old,"const ORDER = ['Anime', 'Egypt', 'Rising Sun', 'Immortal', 'Prehistoric', 'Cryptid', 'Era2', 'Video Game'];",1)
           p.write_text(s)
 
           p=Path('roll-sim-pack-weather-v26.js')
