@@ -12,7 +12,8 @@
       if (!small || !pack) return;
       const cards = DATA.cards.filter((card) => card.pack === pack);
       const weather = cards.filter((card) => !!card.weather).length;
-      const text = `${cards.length} cards${weather ? ` · ${weather} weather-only` : ''}`;
+      const requirement = pack === 'Video Game' ? ' · 25M rolls' : '';
+      const text = `${cards.length} cards${weather ? ` · ${weather} weather-only` : ''}${requirement}`;
       if (small.textContent !== text) small.textContent = text;
       option.title = weather ? `${weather} cards from this pack still require their matching weather. Rapture cards can use the Rapture 24/7 unlock.` : '';
     });

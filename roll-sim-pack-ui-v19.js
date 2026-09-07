@@ -4,7 +4,7 @@
   if (!DATA || !root) return;
 
   const STORAGE = 'hitCalcRollSimPacksV19';
-  const ORDER = ['Anime', 'Egypt', 'Rising Sun', 'Immortal', 'Prehistoric', 'Cryptid', 'Era2'];
+  const ORDER = ['Anime', 'Egypt', 'Rising Sun', 'Immortal', 'Prehistoric', 'Cryptid', 'Era2', 'Video Game'];
   const allPacks = [...new Set(DATA.cards.map((card) => card.pack).filter(Boolean))]
     .sort((a, b) => {
       const ai = ORDER.indexOf(a), bi = ORDER.indexOf(b);

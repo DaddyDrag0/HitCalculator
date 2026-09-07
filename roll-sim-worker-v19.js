@@ -66,6 +66,7 @@ importScripts('./roll-sim-video-game-v34.js?rev=20260907-video-game-1');
 const __rollSimBaseAdjustedCardRarity = adjustedCardRarity;
 adjustedCardRarity = function(card, build, weather, weatherStructures) {
   if (card?.rollable === false || card?.expiredEvent) return null;
+  if (card?.rollRequirement && (Number(build?.rolls) || 0) < Number(card.rollRequirement)) return null;
   if (card?.pack && Array.isArray(build?.enabledPacks) && !build.enabledPacks.includes(card.pack)) return null;
 
   const raptureUnlocked = card?.weather === 'Rapture' && !!build?.rapture24;

@@ -33,6 +33,7 @@
       if ('expiredBaseRarity' in card) delete card.expiredBaseRarity;
     }
   }
+  for (const card of DATA.cards) if (card.pack === 'Video Game') card.rollRequirement = 25000000;
   if (Array.isArray(DATA.currentEvents)) DATA.currentEvents.splice(0, DATA.currentEvents.length, ...currentEvents.map((card) => card.name));
   DATA.cards.sort((a, b) => (Number(b.rarity) || 0) - (Number(a.rarity) || 0) || String(a.name).localeCompare(String(b.name)));
 })();
