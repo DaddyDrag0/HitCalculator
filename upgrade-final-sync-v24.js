@@ -13,7 +13,7 @@
     'Crystal Gem':{Luck:12,Platinum:.5,Crystal:.5,Cooldown:100}, 'Dark Star':{Luck:15,Platinum:.5,Crystal:.5,Ruby:.5,Galaxy:.5,Cooldown:125},
     'Infinity Gem':{Luck:20,Platinum:1,Crystal:1,Ruby:1,Galaxy:1,Cooldown:150}, 'Lucky Crown':{Luck:27,Platinum:1.5,Crystal:1.5,Ruby:1.5,Galaxy:1.5,Cooldown:175},
     'Forbidden Book':{Luck:35,Platinum:2,Crystal:2,Ruby:2,Galaxy:2,Cooldown:200}, "Angel's Halo":{Luck:42,Platinum:3,Crystal:3,Ruby:3,Galaxy:3,Cooldown:200},
-    'Forbidden Fruit':{Luck:50,Platinum:4,Crystal:4,Ruby:4,Galaxy:4,Cooldown:200}, 'Book of Life and Death':{Luck:66,Platinum:6,Crystal:6,Ruby:6,Galaxy:6,Cooldown:200}
+    'Forbidden Fruit':{Luck:50,Platinum:4,Crystal:4,Ruby:4,Galaxy:4,Cooldown:200}, 'Sacred Heart':{Luck:58,Platinum:5,Crystal:5,Ruby:5,Galaxy:5,Cooldown:200}, 'Book of Life and Death':{Luck:66,Platinum:6,Crystal:6,Ruby:6,Galaxy:6,Cooldown:200}
   };
   const D = {Luck:10,Speed:10,Platinum:.25,Crystal:.5,Ruby:.75,Galaxy:2};
   const BN = ['Platinum','Crystal','Ruby','Galaxy'];
@@ -21,13 +21,13 @@
   const on = (id) => !!$(id)?.checked;
   const lvl = (id,max) => Math.max(0,Math.min(max,Math.floor(num(id))));
   const skill = (name,id) => SK[name][lvl(id,SK[name].length-1)]||0;
-  const sm = (kind,level) => (kind==='Luck'||kind==='Speed' ? 1+.5*level/7 : 1+level/5);
+  const sm = (kind,level) => (kind==='Luck'||kind==='Speed' ? (level>=8?1.6:1+.5*level/7) : 1+level/5);
   function chaska(points,rate){let left=Math.max(0,Math.floor(Number(points)||0)),block=0,total=0;while(left>0){const n=Math.min(50,left);total+=n*rate*.85**block;left-=n;block++;}return total;}
   function fmt(value){if(!Number.isFinite(value))return '—';const abs=Math.abs(value),s=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];if(abs<1000)return value.toLocaleString(undefined,{maximumFractionDigits:2});const t=Math.floor(Math.log10(abs)/3);if(t>=s.length)return value.toExponential(2);const n=value/1000**t,d=Math.abs(n)>=100?0:Math.abs(n)>=10?1:2;return `${n.toFixed(d).replace(/\.0+$/,'').replace(/(\.\d*?[1-9])0+$/,'$1')}${s[t]}`;}
   function calc(){
     const rolls=Math.max(0,Math.floor(num('uvRolls'))), charm=CH[$('uvCharm')?.value]||{};
     const s={Luck:skill('Luck','uvSkillLuck'),RollSpeed:skill('RollSpeed','uvSkillSpeed'),AllStat:skill('AllStat','uvSkillAll'),Platinum:skill('Platinum','uvSkillPlatinum'),Crystal:skill('Crystal','uvSkillCrystal'),Ruby:skill('Ruby','uvSkillRuby'),Galaxy:skill('Galaxy','uvSkillGalaxy')};
-    const st={Luck:lvl('uvStructureLuck',7),Speed:lvl('uvStructureSpeed',7),Platinum:lvl('uvStructurePlatinum',5),Crystal:lvl('uvStructureCrystal',5),Ruby:lvl('uvStructureRuby',5),Galaxy:lvl('uvStructureGalaxy',5)};
+    const st={Luck:lvl('uvStructureLuck',8),Speed:lvl('uvStructureSpeed',8),Platinum:lvl('uvStructurePlatinum',5),Crystal:lvl('uvStructureCrystal',5),Ruby:lvl('uvStructureRuby',5),Galaxy:lvl('uvStructureGalaxy',5)};
     let luck=1+Math.floor(rolls/1e6)*.1+(charm.Luck||0); luck*=1+(s.Luck+s.AllStat)/100;
     if(on('uvPotLuck3'))luck+=25;if(on('uvPotLegendaryLuck'))luck+=40;if(on('uvPotCursed'))luck*=1.5;if(on('uvPotElixir'))luck*=2;if(on('uvPotEventLuck'))luck*=1.25;
     luck*=sm('Luck',st.Luck);luck+=lvl('uvDungeonLuck',25)*D.Luck;luck+=chaska(num('uvChaskaLuck'),.25);if(on('uvQuickdraw'))luck*=.8;if(on('uvHeavyHand'))luck*=1.2;
