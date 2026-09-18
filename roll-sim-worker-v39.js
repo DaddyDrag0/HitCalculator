@@ -140,6 +140,8 @@ function simulateRunQuickV39(scenario, totalSeconds, seed) {
   const comboTotals = new Uint32Array(MASK_COUNT);
   const borderTotals = new Uint32Array(BN.length);
   const weatherRolls = {};
+  const mutationTotals = {};
+  const mutationChance = mutationChanceV30(scenario);
 
   let totalRolls = 0;
   let rollFraction = 0;
@@ -191,6 +193,16 @@ function simulateRunQuickV39(scenario, totalSeconds, seed) {
       }
     }
 
+    if (weather && weather !== 'Rapture') {
+      let mutated = 0;
+      for (let cardIndex = 0; cardIndex < CARDS.length; cardIndex += 1) {
+        const amount = segmentCards[cardIndex];
+        if (!amount || !mutationEligibleV30(CARDS[cardIndex], weather)) continue;
+        mutated += binomialV39(amount, mutationChance, random);
+      }
+      if (mutated > 0) mutationTotals[weather] = (mutationTotals[weather] || 0) + mutated;
+    }
+
     const maskProbabilities = borderMaskProbabilitiesV39(build, weather);
     const maskOrder = Array.from({ length: MASK_COUNT }, (_, i) => i)
       .filter((i) => maskProbabilities[i] > 0)
@@ -236,6 +248,7 @@ function simulateRunQuickV39(scenario, totalSeconds, seed) {
     cardMasks,
     borderTotals,
     comboTotals,
+    mutationTotals,
     bestPull: bestCardIndex >= 0 ? {
       cardIndex: bestCardIndex,
       mask: bestMask,
