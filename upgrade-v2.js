@@ -38,6 +38,7 @@
     'Forbidden Book': { Luck: 35, Platinum: 2, Crystal: 2, Ruby: 2, Galaxy: 2, Cooldown: 200 },
     "Angel's Halo": { Luck: 42, Platinum: 3, Crystal: 3, Ruby: 3, Galaxy: 3, Cooldown: 200 },
     'Forbidden Fruit': { Luck: 50, Platinum: 4, Crystal: 4, Ruby: 4, Galaxy: 4, Cooldown: 200 },
+    'Sacred Heart': { Luck: 58, Platinum: 5, Crystal: 5, Ruby: 5, Galaxy: 5, Cooldown: 200 },
     'Book of Life and Death': { Luck: 66, Platinum: 6, Crystal: 6, Ruby: 6, Galaxy: 6, Cooldown: 200 },
   };
   const TIME_UNITS = { second: 1, minute: 60, hour: 3600, day: 86400, week: 604800 };
@@ -103,7 +104,7 @@
     return total;
   }
   function structureMultiplier(kind, lvl) {
-    if (kind === 'Luck' || kind === 'Speed') return 1 + 0.5 * lvl / 7;
+    if (kind === 'Luck' || kind === 'Speed') return lvl >= 8 ? 1.6 : 1 + 0.5 * lvl / 7;
     return 1 + lvl / 5;
   }
   function skill(name, id) {
@@ -119,7 +120,7 @@
       Platinum: skill('Platinum', 'uvSkillPlatinum'), Crystal: skill('Crystal', 'uvSkillCrystal'), Ruby: skill('Ruby', 'uvSkillRuby'), Galaxy: skill('Galaxy', 'uvSkillGalaxy'),
     };
     const structures = {
-      Luck: level('uvStructureLuck', 7), Speed: level('uvStructureSpeed', 7), Platinum: level('uvStructurePlatinum', 5),
+      Luck: level('uvStructureLuck', 8), Speed: level('uvStructureSpeed', 8), Platinum: level('uvStructurePlatinum', 5),
       Crystal: level('uvStructureCrystal', 5), Ruby: level('uvStructureRuby', 5), Galaxy: level('uvStructureGalaxy', 5),
     };
     const quickdraw = !!$('uvQuickdraw')?.checked;
@@ -295,7 +296,7 @@
           <article class="uv-panel"><div class="uv-panel-title"><span>02</span><strong>Skill Tree</strong></div><div class="uv-level-list">${field('Luck', 'uvSkillLuck', 7)}${field('Roll Speed', 'uvSkillSpeed', 7)}${field('All Stat', 'uvSkillAll', 3)}${field('Platinum', 'uvSkillPlatinum', 6)}${field('Crystal', 'uvSkillCrystal', 6)}${field('Ruby', 'uvSkillRuby', 6)}${field('Galaxy', 'uvSkillGalaxy', 6)}</div></article>
         </div>
         <div class="uv-stack uv-center-stack">
-          <article class="uv-panel"><div class="uv-panel-title"><span>03</span><strong>Structures</strong></div><div class="uv-structure-grid">${field('Luck', 'uvStructureLuck', 7)}${field('Speed', 'uvStructureSpeed', 7)}${field('Platinum', 'uvStructurePlatinum', 5)}${field('Crystal', 'uvStructureCrystal', 5)}${field('Ruby', 'uvStructureRuby', 5)}${field('Galaxy', 'uvStructureGalaxy', 5)}</div></article>
+          <article class="uv-panel"><div class="uv-panel-title"><span>03</span><strong>Structures</strong></div><div class="uv-structure-grid">${field('Luck', 'uvStructureLuck', 8)}${field('Speed', 'uvStructureSpeed', 8)}${field('Platinum', 'uvStructurePlatinum', 5)}${field('Crystal', 'uvStructureCrystal', 5)}${field('Ruby', 'uvStructureRuby', 5)}${field('Galaxy', 'uvStructureGalaxy', 5)}</div></article>
           <article class="uv-panel uv-chaska-panel"><div class="uv-panel-title uv-panel-title-split"><div><span>04</span><strong>Chaska's Blessing</strong></div><b id="uvChaskaPoints">0 / 0</b></div><div class="uv-chaska-grid"><label><span>Luck</span><input id="uvChaskaLuck" type="number" min="0" step="1" value="0"></label><label class="platinum"><span>Platinum</span><input id="uvChaskaPlatinum" type="number" min="0" step="1" value="0"></label><label class="crystal"><span>Crystal</span><input id="uvChaskaCrystal" type="number" min="0" step="1" value="0"></label><label class="galaxy"><span>Galaxy</span><input id="uvChaskaGalaxy" type="number" min="0" step="1" value="0"></label></div></article>
         </div>
         <div class="uv-stack">
