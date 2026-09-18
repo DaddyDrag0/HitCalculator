@@ -7,6 +7,9 @@ const BORDERS = {
 
 const CARD_POOL = [{"name":"Fate Seamstress","rarity":2000000000,"expires":1788224400,"rollFactor":0.2},{"name":"Eonus","rarity":888888888,"expires":1788224400,"rollFactor":0.2},{"name":"Eclipseborn Luminant","rarity":299792458,"expires":1788224400,"rollFactor":0.2},{"name":"Fafnir","rarity":100000000,"expires":null,"rollFactor":1},{"name":"Ragon","rarity":100000000,"expires":null,"rollFactor":1},{"name":"Gilgamesh","rarity":50000000,"expires":null,"rollFactor":1},{"name":"Deus Ex","rarity":10000000,"expires":null,"rollFactor":1},{"name":"Hades","rarity":6666666,"expires":null,"rollFactor":1},{"name":"Poseidon","rarity":3000000,"expires":null,"rollFactor":1},{"name":"ToadBoiGaming","rarity":1200000,"expires":null,"rollFactor":1},{"name":"Bad Boys","rarity":1000000,"expires":null,"rollFactor":1},{"name":"Jamiy the Bald One","rarity":1000000,"expires":null,"rollFactor":1},{"name":"Phoenix","rarity":555555,"expires":null,"rollFactor":1},{"name":"Titan","rarity":500000,"expires":null,"rollFactor":1},{"name":"Frankenstein","rarity":350000,"expires":null,"rollFactor":1},{"name":"Brunhilde","rarity":250000,"expires":null,"rollFactor":1},{"name":"Leviathan","rarity":100000,"expires":null,"rollFactor":1},{"name":"Three-Legged Golden Crow","rarity":55555,"expires":null,"rollFactor":1},{"name":"Arthur of Excalibur","rarity":15000,"expires":null,"rollFactor":1},{"name":"Greedy Belly","rarity":10000,"expires":null,"rollFactor":1},{"name":"Tartarus","rarity":6666,"expires":null,"rollFactor":1},{"name":"Knightmare","rarity":5000,"expires":null,"rollFactor":1},{"name":"Skeleton King","rarity":3333,"expires":null,"rollFactor":1},{"name":"Count Muscula","rarity":2000,"expires":null,"rollFactor":1},{"name":"Michael","rarity":1000,"expires":null,"rollFactor":1},{"name":"Beelzebub","rarity":666,"expires":null,"rollFactor":1},{"name":"Arthur","rarity":500,"expires":null,"rollFactor":1},{"name":"Crown Prince","rarity":200,"expires":null,"rollFactor":1},{"name":"General Moon Zoo","rarity":100,"expires":null,"rollFactor":1},{"name":"Forest Spirit","rarity":75,"expires":null,"rollFactor":1},{"name":"Wizard","rarity":35,"expires":null,"rollFactor":1},{"name":"Baby Skeleton","rarity":20,"expires":null,"rollFactor":1},{"name":"Useless Seer","rarity":12,"expires":null,"rollFactor":1},{"name":"Good Boy","rarity":8,"expires":null,"rollFactor":1},{"name":"Shining Armor","rarity":4,"expires":null,"rollFactor":1},{"name":"Archer","rarity":2,"expires":null,"rollFactor":1}];
 const CARD_THRESHOLDS = Array.from({ length: 22 }, (_, i) => 10 ** (i + 1));
+const MUTATION_BASE_DENOMINATOR = 750;
+const MUTATION_PASS_MULTIPLIER = 1.25;
+const MUTATION_POTION_MULTIPLIER = 1.2;
 const TIME_UNITS = { second: 1, minute: 60, hour: 3_600, day: 86_400, week: 604_800 };
 const STORAGE_KEY = "hitCalcStatsV2";
 const OLD_STORAGE_KEY = "hitCalcStatsV1";
@@ -19,6 +22,10 @@ const els = {
   rollSpeed: $("rollSpeed"),
   speedStructure: $("speedStructure"),
   timeStorm: $("timeStorm"),
+  mutationTarget: $("mutationTarget"),
+  mutationPass: $("mutationPass"),
+  mutationPotion: $("mutationPotion"),
+  mutationChanceReadout: $("mutationChanceReadout"),
   selectedBorders: $("selectedBorders"),
   averageRolls: $("averageRolls"),
   averageTime: $("averageTime"),
@@ -46,6 +53,9 @@ function loadSavedStats() {
       if (saved[id] !== undefined && saved[id] !== null) $(id).value = String(saved[id]);
     }
     if (typeof saved.timeStorm === "boolean") els.timeStorm.checked = saved.timeStorm;
+    if (typeof saved.mutationTarget === "boolean") els.mutationTarget.checked = saved.mutationTarget;
+    if (typeof saved.mutationPass === "boolean") els.mutationPass.checked = saved.mutationPass;
+    if (typeof saved.mutationPotion === "boolean") els.mutationPotion.checked = saved.mutationPotion;
   } catch {}
 }
 
@@ -56,6 +66,9 @@ function saveStats() {
       rollSpeed: els.rollSpeed.value,
       speedStructure: els.speedStructure.value,
       timeStorm: els.timeStorm.checked,
+      mutationTarget: els.mutationTarget.checked,
+      mutationPass: els.mutationPass.checked,
+      mutationPotion: els.mutationPotion.checked,
       platinumLuck: $("platinumLuck").value,
       crystalLuck: $("crystalLuck").value,
       rubyLuck: $("rubyLuck").value,
@@ -126,7 +139,8 @@ function getStats() {
 }
 
 function speedStructureMultiplier() {
-  const level = Math.max(0, Math.min(7, Number(els.speedStructure.value) || 0));
+  const level = Math.max(0, Math.min(8, Number(els.speedStructure.value) || 0));
+  if (level >= 8) return 1.6;
   return 1 + (0.5 * level / 7);
 }
 
@@ -144,8 +158,20 @@ function combinationRate(names, stats) {
   return rate;
 }
 
+function mutationRate() {
+  let chance = 1 / MUTATION_BASE_DENOMINATOR;
+  if (els.mutationPass.checked) chance *= MUTATION_PASS_MULTIPLIER;
+  if (els.mutationPotion.checked) chance *= MUTATION_POTION_MULTIPLIER;
+  return Math.min(1, chance);
+}
+
 function selectedRate(stats) {
-  return selected.size ? combinationRate([...selected], stats) : 0;
+  const hasBorderTarget = selected.size > 0;
+  const needsMutation = els.mutationTarget.checked;
+  if (!hasBorderTarget && !needsMutation) return 0;
+  let rate = hasBorderTarget ? combinationRate([...selected], stats) : 1;
+  if (needsMutation) rate *= mutationRate();
+  return rate;
 }
 
 function performanceForRate(rate, cardsPerSecond) {
@@ -227,16 +253,18 @@ function updateTargetUI() {
     button.setAttribute("aria-pressed", String(active));
   });
   els.selectedBorders.replaceChildren();
-  if (!selected.size) {
+  const hasTarget = selected.size > 0 || els.mutationTarget.checked;
+  if (!hasTarget) {
     const empty = document.createElement("span");
     empty.className = "empty-target";
-    empty.textContent = "Select a border";
+    empty.textContent = "Select a border or Mutation";
     els.selectedBorders.append(empty);
     return;
   }
   for (const name of Object.keys(BORDERS)) {
     if (selected.has(name)) els.selectedBorders.append(makeBorderChip(name));
   }
+  if (els.mutationTarget.checked) els.selectedBorders.append(makeMutationChip());
 }
 
 function makeBorderChip(name) {
@@ -246,14 +274,24 @@ function makeBorderChip(name) {
   return chip;
 }
 
+function makeMutationChip() {
+  const chip = document.createElement("span");
+  chip.className = "target-chip mutation";
+  chip.textContent = "Mutation";
+  return chip;
+}
+
 function getAllCombinations(stats) {
   const names = Object.keys(BORDERS);
   const combinations = [];
+  const needsMutation = els.mutationTarget.checked;
+  const mutation = needsMutation ? mutationRate() : 1;
+  if (needsMutation) combinations.push({ names: [], rate: mutation, mutation: true });
   for (let mask = 1; mask < (1 << names.length); mask += 1) {
     const combo = [];
     for (let i = 0; i < names.length; i += 1) if (mask & (1 << i)) combo.push(names[i]);
-    const rate = combinationRate(combo, stats);
-    if (rate > 0) combinations.push({ names: combo, rate });
+    const rate = combinationRate(combo, stats) * mutation;
+    if (rate > 0) combinations.push({ names: combo, rate, mutation: needsMutation });
   }
   combinations.sort((a, b) => a.names.length - b.names.length || b.rate - a.rate);
   return combinations;
@@ -304,6 +342,7 @@ function renderTimeSpan(stats, cardsPerSecond, distribution, outcomes) {
     const chips = document.createElement("div");
     chips.className = "chip-group";
     for (const name of combo.names) chips.append(makeBorderChip(name));
+    if (combo.mutation) chips.append(makeMutationChip());
     els.borderChanceResults.append(makeChanceItem(chips, formatChance(chanceAtLeastOnce(combo.rate, rolls))));
   }
 
@@ -327,8 +366,11 @@ function render() {
   const cardPerf = performanceForRate(cardRate, cardsPerSecond);
 
   updateTargetUI();
-  els.averageRolls.textContent = selected.size ? formatNumber(borderPerf.rolls, borderPerf.rolls < 100 ? 2 : 0) : "—";
-  els.averageTime.textContent = selected.size ? formatTime(borderPerf.time) : "—";
+  const hasBorderTarget = selected.size > 0 || els.mutationTarget.checked;
+  els.averageRolls.textContent = hasBorderTarget ? formatNumber(borderPerf.rolls, borderPerf.rolls < 100 ? 2 : 0) : "—";
+  els.averageTime.textContent = hasBorderTarget ? formatTime(borderPerf.time) : "—";
+  const mutation = mutationRate();
+  els.mutationChanceReadout.textContent = `1 / ${formatNumber(1 / mutation, 2)} per eligible roll`;
   els.cardTargetLabel.textContent = formatNumber(threshold);
   els.cardAverageRolls.textContent = formatNumber(cardPerf.rolls, cardPerf.rolls < 100 ? 2 : 0);
   els.cardAverageTime.textContent = formatTime(cardPerf.time);
@@ -344,6 +386,9 @@ function reset() {
   els.rollSpeed.value = "100";
   els.speedStructure.value = "0";
   els.timeStorm.checked = false;
+  els.mutationTarget.checked = false;
+  els.mutationPass.checked = false;
+  els.mutationPotion.checked = false;
   els.cardRarity.value = "1000000";
   els.timeValue.value = "1";
   els.timeUnit.value = "hour";
@@ -360,7 +405,7 @@ document.querySelectorAll(".border-tab").forEach((button) => {
   });
 });
 
-for (const id of ["luck", "rollSpeed", "speedStructure", "timeStorm", "platinumLuck", "crystalLuck", "rubyLuck", "galaxyLuck", "cardRarity"]) {
+for (const id of ["luck", "rollSpeed", "speedStructure", "timeStorm", "mutationTarget", "mutationPass", "mutationPotion", "platinumLuck", "crystalLuck", "rubyLuck", "galaxyLuck", "cardRarity"]) {
   const element = $(id);
   const update = () => { saveStats(); render(); };
   element.addEventListener("input", update);
