@@ -66,6 +66,25 @@
     #timeViewBorders:checked ~ .border-time-panel,
     #timeViewCards:checked ~ .card-time-panel { display: block; }
     .time-panel .chance-results { margin-top: 12px; }
+    .target-chip.mutation {
+      color: #d7b7ff;
+      border-color: #6e518d;
+      background: #17111f;
+    }
+    .mutation-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: .7rem;
+    }
+    .mutation-note strong { color: #d7b7ff; text-align: right; }
+    .check-row small { display:block; margin-top:3px; color:var(--muted); font-size:.65rem; line-height:1.35; }
     @media (max-width: 520px) {
       .time-tabs { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
       .time-tab { min-width: 0; }
@@ -105,6 +124,7 @@
               <option value="5">Level 5 · ×1.357</option>
               <option value="6">Level 6 · ×1.429</option>
               <option value="7">Level 7 · ×1.500</option>
+              <option value="8">Level 8 · ×1.600</option>
             </select>
           </label>
 
@@ -145,6 +165,23 @@
           <input id="theDice" type="checkbox" />
           <span><strong>The Dice</strong></span>
         </label>
+
+        <label class="check-row">
+          <input id="mutationTarget" type="checkbox" />
+          <span><strong>Require Mutation</strong><small>Stacks with selected borders. Assumes a mutation-eligible card during active non-Rapture weather.</small></span>
+        </label>
+
+        <label class="check-row">
+          <input id="mutationPass" type="checkbox" />
+          <span><strong>Mutation Gamepass</strong><small>+25% Mutation Chance</small></span>
+        </label>
+
+        <label class="check-row">
+          <input id="mutationPotion" type="checkbox" />
+          <span><strong>Mutation Potion</strong><small>×1.2 Mutation Chance</small></span>
+        </label>
+
+        <div class="mutation-note"><span>Effective mutation odds</span><strong id="mutationChanceReadout">1 / 750 per eligible roll</strong></div>
 
         <div class="divider"></div>
 
@@ -285,6 +322,9 @@
           rollSpeed: els.rollSpeed.value,
           speedStructure: els.speedStructure.value,
           timeStorm: els.timeStorm.checked,
+          mutationTarget: els.mutationTarget.checked,
+          mutationPass: els.mutationPass.checked,
+          mutationPotion: els.mutationPotion.checked,
           bossPot: bossPot.checked,
           luckySurge: luckySurge.checked,
           theDice: theDice.checked,
