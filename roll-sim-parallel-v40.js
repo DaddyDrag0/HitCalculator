@@ -162,8 +162,8 @@
       const reportedCores = Math.max(2, Number(navigator.hardwareConcurrency) || 4);
       const concurrency = Math.max(1, Math.min(tasks.length, 8, reportedCores - 1));
       const workerUrl = quickMode
-        ? './roll-sim-worker-v39.js?rev=20260918-mutation-2'
-        : './roll-sim-worker-v38.js?rev=20260918-mutation-2';
+        ? './roll-sim-worker-v39.js?rev=20260918-mutation-3'
+        : './roll-sim-worker-v38.js?rev=20260918-mutation-3';
       let nextTask = 0;
       let completed = 0;
       let failed = false;
