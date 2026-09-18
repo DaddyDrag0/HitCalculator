@@ -41,6 +41,25 @@ function makeRngV30(seed) {
   return { unit32, unit53 };
 }
 
+function mutationChanceV30(scenario) {
+  let chance = 1 / 750;
+  if (scenario?.mutation?.pass) chance *= 1.25;
+  if (scenario?.mutation?.potion) chance *= 1.2;
+  return Math.min(1, Math.max(0, chance));
+}
+
+function mutationEligibleV30(card, weather) {
+  return !!weather
+    && weather !== 'Rapture'
+    && !!card
+    && !card.weather
+    && !card.boss
+    && !card.sin
+    && !card.currentEvent
+    && !card.expiredEvent
+    && card.rollable !== false;
+}
+
 function borderRatesV30(build, weather, vicIndex) {
   const multipliers = baseBorderMultipliers(build, weather);
   const factors = vicIndex >= 0 ? VIC_STATES[vicIndex].factors : [1, 1, 1, 1];
@@ -58,6 +77,8 @@ function simulateRunV30(scenario, totalSeconds, seed) {
   const cardMasksFlat = new Uint32Array(CARDS.length * MASK_COUNT);
   const comboTotals = new Uint32Array(MASK_COUNT);
   const borderTotals = new Uint32Array(BN.length);
+  const mutationTotals = {};
+  const mutationChance = mutationChanceV30(scenario);
   const samplerCache = new Map();
   let bestCardIndex = -1;
   let bestMask = 0;
@@ -89,6 +110,10 @@ function simulateRunV30(scenario, totalSeconds, seed) {
         if (mask & (1 << border)) borderTotals[border] += 1;
       }
 
+      if (mutationEligibleV30(CARDS[cardIndex], state.weather) && random.unit32() < mutationChance) {
+        mutationTotals[state.weather] = (mutationTotals[state.weather] || 0) + 1;
+      }
+
       const effective = CARDS[cardIndex].rarity * MASK_MULTIPLIERS[mask];
       if (effective > bestEffective) {
         bestCardIndex = cardIndex;
@@ -116,6 +141,7 @@ function simulateRunV30(scenario, totalSeconds, seed) {
     cardMasks,
     borderTotals: Array.from(borderTotals),
     comboTotals: Array.from(comboTotals),
+    mutationTotals,
     bestPull: bestCardIndex >= 0 ? {
       cardIndex: bestCardIndex,
       mask: bestMask,
