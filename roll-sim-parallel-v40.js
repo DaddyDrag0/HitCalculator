@@ -20,7 +20,9 @@
     const comboTotals = new Array(MASK_COUNT).fill(0);
     const comboHitRuns = new Array(MASK_COUNT).fill(0);
     const weatherRolls = {};
+    const mutationTotals = {};
     let totalRolls = 0;
+    let totalMutations = 0;
     let uniqueTotal = 0;
     let bestPull = null;
 
@@ -29,6 +31,11 @@
       totalRolls += Number(run.totalRolls) || 0;
       uniqueTotal += Number(run.uniqueCards) || 0;
       for (const [weather, rolls] of Object.entries(run.weatherRolls || {})) weatherRolls[weather] = (weatherRolls[weather] || 0) + rolls;
+      for (const [weather, amount] of Object.entries(run.mutationTotals || {})) {
+        const count = Number(amount) || 0;
+        mutationTotals[weather] = (mutationTotals[weather] || 0) + count;
+        totalMutations += count;
+      }
 
       for (let i = 0; i < CARDS.length; i += 1) {
         const c = Number(run.cardTotals?.[i]) || 0;
@@ -54,6 +61,9 @@
       totalRolls,
       averageRolls: totalRolls / count,
       averageUniqueCards: uniqueTotal / count,
+      totalMutations,
+      averageMutations: totalMutations / count,
+      mutationTotals,
       cardTotals,
       cardHitRuns,
       cardMasks,
