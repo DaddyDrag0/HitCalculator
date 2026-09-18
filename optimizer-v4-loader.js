@@ -1,5 +1,5 @@
 (() => {
-  const sourceUrl='./optimizer-builds-v1.js?rev=20260829-1200';
+  const sourceUrl='./optimizer-builds-v1.js?rev=20260918-mutation-2';
   function fail(message){
     console.error('[Optimizer v4]',message);
     const show=()=>{const switcher=document.querySelector('.uv-mode-switch');if(!switcher||switcher.querySelector('[data-view="optimizer-load-error"]'))return;const note=document.createElement('span');note.dataset.view='optimizer-load-error';note.style.cssText='align-self:center;color:#ff9299;font-size:.62rem;font-weight:800';note.textContent='Optimizer failed to load. Refresh the test page.';switcher.append(note);};
