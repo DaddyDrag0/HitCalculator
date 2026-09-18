@@ -45,6 +45,7 @@
     'Forbidden Book':{Luck:35,Platinum:2,Crystal:2,Ruby:2,Galaxy:2,Cooldown:200},
     "Angel's Halo":{Luck:42,Platinum:3,Crystal:3,Ruby:3,Galaxy:3,Cooldown:200},
     'Forbidden Fruit':{Luck:50,Platinum:4,Crystal:4,Ruby:4,Galaxy:4,Cooldown:200},
+    'Sacred Heart':{Luck:58,Platinum:5,Crystal:5,Ruby:5,Galaxy:5,Cooldown:200},
     'Book of Life and Death':{Luck:66,Platinum:6,Crystal:6,Ruby:6,Galaxy:6,Cooldown:200},
   };
   const BUILD_EXCLUDE = new Set(['uvTimeValue','uvTimeUnit','uvCardRarity']);
@@ -170,8 +171,8 @@
 
   function contextFromData(data) {
     const structures = {
-      Luck:Math.max(0,Math.min(7,Math.floor(valueOf(data,'uvStructureLuck',0)))),
-      Speed:Math.max(0,Math.min(7,Math.floor(valueOf(data,'uvStructureSpeed',0)))),
+      Luck:Math.max(0,Math.min(8,Math.floor(valueOf(data,'uvStructureLuck',0)))),
+      Speed:Math.max(0,Math.min(8,Math.floor(valueOf(data,'uvStructureSpeed',0)))),
       Platinum:Math.max(0,Math.min(5,Math.floor(valueOf(data,'uvStructurePlatinum',0)))),
       Crystal:Math.max(0,Math.min(5,Math.floor(valueOf(data,'uvStructureCrystal',0)))),
       Ruby:Math.max(0,Math.min(5,Math.floor(valueOf(data,'uvStructureRuby',0)))),
