@@ -2,14 +2,9 @@
   const data = globalThis.ROLL_SIM_DATA_V16;
   if (!data?.cards || !Array.isArray(data.cards)) return;
 
-  const expired = new Set(['Fate Seamstress', 'Eonus', 'Eclipseborn Luminant']);
-  for (const card of data.cards) {
-    if (!expired.has(card?.name)) continue;
-    if (!Number.isFinite(card.expiredBaseRarity)) card.expiredBaseRarity = Number(card.rarity) || 0;
-    card.currentEvent = false;
-    card.rollable = false;
-    card.expiredEvent = true;
-    card.rarity = Number.POSITIVE_INFINITY;
+  const retiredEvents = new Set(["Fate Seamstress","Eonus","Eclipseborn Luminant","Supreme Ozzy","The Broken One","Hera"]);
+  for (let index = data.cards.length - 1; index >= 0; index -= 1) {
+    if (retiredEvents.has(data.cards[index]?.name)) data.cards.splice(index, 1);
   }
 
   if (Array.isArray(data.currentEvents)) data.currentEvents.splice(0, data.currentEvents.length);
