@@ -1,4 +1,4 @@
-importScripts('./roll-sim-worker-v38.js?rev=20260918-mutation-2');
+importScripts('./roll-sim-worker-v38.js?rev=20260918-mutation-3');
 
 // Quick Simulation is intentionally isolated from the exact roll loop.
 // Every run below has bounded work: <= 24 weather segments, <= 4 card states
