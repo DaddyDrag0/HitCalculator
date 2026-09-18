@@ -40,11 +40,11 @@ assert(rollExact.includes('mutationTotals'))
 assert(rollQuick.includes('mutationEligibleV30'))
 assert(rollQuick.includes('mutationTotals'))
 assert(rollParallel.includes('averageMutations'))
-assert(loader.includes('roll-simulator-v15.js?rev=20260918-mutation-3'))
-assert(loader.includes('roll-sim-parallel-v19.js?rev=20260918-mutation-3'))
+assert(loader.includes('roll-simulator-v15.js?rev=20260918-no-events-1'))
+assert(loader.includes('roll-sim-parallel-v19.js?rev=20260918-no-events-1'))
 
-assert(loader.includes('app-base.js?rev=20260918-mutation-3'))
-assert(index.includes("const version='20260918-mutation-3';"))
+assert(loader.includes('app-base.js?rev=20260918-no-events-1'))
+assert(index.includes("const version='20260918-no-events-1';"))
 
 const base = 1 / 750
 assert.equal(Math.round(1 / (base * 1.25)), 600)
