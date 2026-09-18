@@ -24,9 +24,13 @@ jobs:
           node --check upgrade-target-sync-v27.js
           node --check optimizer-builds-v1.js
           node --check roll-simulator-v15.js
+          node --check hit-calc-video-game-v34.js
+          node --check roll-sim-event-expiry-v32.js
+          node --check roll-sim-video-game-v34.js
           node --check roll-sim-worker-v30.js
           node --check roll-sim-worker-v39.js
           node --check roll-sim-parallel-v19.js
           node hit-calc-mutation-selftest.cjs
+          node hit-calc-event-cleanup-selftest.cjs
       - name: Validate optimizer patches
         run: node optimizer-v4-selftest.cjs
