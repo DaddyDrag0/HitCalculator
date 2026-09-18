@@ -20,9 +20,15 @@ assert(html.includes('id="mutationPass"'))
 assert(html.includes('id="mutationPotion"'))
 assert(html.includes('id="mutationChanceReadout"'))
 assert(html.includes('<option value="8">Level 8 · ×1.600</option>'))
+assert(fs.readFileSync('upgrade-v2.js','utf8').includes("'Sacred Heart': { Luck: 58, Platinum: 5, Crystal: 5, Ruby: 5, Galaxy: 5, Cooldown: 200 }"))
+assert(fs.readFileSync('upgrade-v2.js','utf8').includes("field('Luck', 'uvStructureLuck', 8)"))
+assert(fs.readFileSync('upgrade-v2.js','utf8').includes("field('Speed', 'uvStructureSpeed', 8)"))
+assert(fs.readFileSync('roll-sim-worker-v16.js','utf8').includes("clampLevel(build.structures?.Luck, 8)"))
+assert(fs.readFileSync('roll-sim-worker-v16.js','utf8').includes("clampLevel(build.structures?.Speed, 8)"))
+assert(fs.readFileSync('optimizer-builds-v1.js','utf8').includes("'Sacred Heart':{Luck:58,Platinum:5,Crystal:5,Ruby:5,Galaxy:5,Cooldown:200}"))
 
-assert(loader.includes('app-base.js?rev=20260918-mutation-1'))
-assert(index.includes("const version='20260918-mutation-1';"))
+assert(loader.includes('app-base.js?rev=20260918-mutation-2'))
+assert(index.includes("const version='20260918-mutation-2';"))
 
 const base = 1 / 750
 assert.equal(Math.round(1 / (base * 1.25)), 600)
