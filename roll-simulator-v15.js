@@ -15,6 +15,8 @@
     weatherMode: 'none',
     fixedWeather: 'Manga',
     segments: [],
+    mutationPass: false,
+    mutationPotion: false,
     weatherStructures: { Snow: 0, Storm: 0, Aurora: 0, Shroud: 0, Chaos: 0 },
   });
 
@@ -35,6 +37,8 @@
     target.snapshot = source.snapshot && typeof source.snapshot === 'object' ? source.snapshot : null;
     target.weatherMode = ['none', 'fixed', 'schedule'].includes(source.weatherMode) ? source.weatherMode : target.weatherMode;
     target.fixedWeather = DATA.weathers.includes(source.fixedWeather) ? source.fixedWeather : target.fixedWeather;
+    target.mutationPass = !!source.mutationPass;
+    target.mutationPotion = !!source.mutationPotion;
     target.segments = Array.isArray(source.segments) ? source.segments.slice(0, 24).map((segment) => ({
       weather: DATA.weathers.includes(segment.weather) ? segment.weather : (segment.weather === null || segment.weather === 'Normal' ? null : null),
       value: Math.max(0, Number(segment.value) || 0),
@@ -215,6 +219,13 @@
           </div>
         </div>
 
+        <div class="rs-subtitle">Mutations</div>
+        <div class="rs-mutation-options">
+          <label><input type="checkbox" data-rs-field="mutation-pass" data-scenario="${key}"${scenario.mutationPass ? ' checked' : ''}><span>Mutation Gamepass <small>+25%</small></span></label>
+          <label><input type="checkbox" data-rs-field="mutation-potion" data-scenario="${key}"${scenario.mutationPotion ? ' checked' : ''}><span>Mutation Potion <small>×1.2</small></span></label>
+          <small>Mutations only roll during active non-Rapture weather and only on mutation-eligible cards.</small>
+        </div>
+
         <details class="rs-advanced">
           <summary>Weather Structures</summary>
           <div class="rs-weather-structures">
@@ -333,6 +344,8 @@
     if (!scenario) return;
     const field = target.dataset.rsField;
     if (field === 'fixed-weather') scenario.fixedWeather = target.value;
+    if (field === 'mutation-pass') scenario.mutationPass = !!target.checked;
+    if (field === 'mutation-potion') scenario.mutationPotion = !!target.checked;
     if (field === 'weather-structure') scenario.weatherStructures[target.dataset.structure] = Math.max(0, Math.min(5, Math.floor(Number(target.value) || 0)));
     if (field && field.startsWith('segment-')) {
       const row = target.closest('.rs-schedule-row');
@@ -389,6 +402,7 @@
     return {
       build,
       weather: { mode: scenario.weatherMode, fixed: scenario.fixedWeather, segments },
+      mutation: { pass: scenario.mutationPass, potion: scenario.mutationPotion },
       weatherStructures: { ...scenario.weatherStructures },
     };
   }
@@ -510,10 +524,20 @@
       <div class="rs-summary-grid">
         <div><span>Avg Rolls / Run</span><strong>${formatNumber(a.averageRolls)}</strong></div>
         <div><span>Avg Unique Cards</span><strong>${a.averageUniqueCards.toFixed(1)}</strong></div>
+        <div><span>Avg Mutations / Run</span><strong>${formatNumber(a.averageMutations || 0, 2)}</strong></div>
         <div><span>Total Rolls Simulated</span><strong>${formatNumber(a.totalRolls)}</strong></div>
         <div><span>Best Pull</span><strong>${bestCard ? `${escapeHtml(borderMaskLabel(best.mask))} ${escapeHtml(bestCard.name)}` : '—'}</strong></div>
       </div>
     `;
+  }
+
+  function mutationResultsHtml(result) {
+    const totals = result.aggregate.mutationTotals || {};
+    const rows = Object.entries(totals)
+      .filter(([, count]) => Number(count) > 0)
+      .sort((a, b) => Number(b[1]) - Number(a[1]));
+    if (!rows.length) return '<div class="rs-no-data">No mutations rolled.</div>';
+    return `<div class="rs-table-wrap"><table class="rs-table"><thead><tr><th>Mutation Weather</th><th>Total</th><th>Avg / Run</th></tr></thead><tbody>${rows.map(([weather,count])=>`<tr><td><strong>${escapeHtml(weather)}</strong></td><td>${formatNumber(Number(count)||0)}</td><td>${formatNumber((Number(count)||0)/Math.max(1,result.aggregate.runs),2)}</td></tr>`).join('')}</tbody></table></div>`;
   }
 
   function bestPullTable(result) {
@@ -587,12 +611,14 @@
           <button type="button" class="active" data-rs-result-tab="best" data-result-key="${key}">Best Pulls</button>
           <button type="button" data-rs-result-tab="cards" data-result-key="${key}">Card Pulls</button>
           <button type="button" data-rs-result-tab="borders" data-result-key="${key}">Borders Pulled</button>
+          <button type="button" data-rs-result-tab="mutations" data-result-key="${key}">Mutations</button>
           <button type="button" data-rs-result-tab="runs" data-result-key="${key}">Individual Runs</button>
         </div>
         <div class="rs-result-body" data-result-body="${key}">
           <section data-result-panel="best">${bestPullTable(result)}</section>
           <section data-result-panel="cards" hidden>${cardPullTable(result, key)}</section>
           <section data-result-panel="borders" hidden>${borderResultsHtml(result)}</section>
+          <section data-result-panel="mutations" hidden>${mutationResultsHtml(result)}</section>
           <section data-result-panel="runs" hidden>${individualRunHtml(result, key, 0)}</section>
         </div>
       </article>
@@ -603,6 +629,7 @@
     const metrics = [
       ['Avg Rolls / Run', a.aggregate.averageRolls, b.aggregate.averageRolls, 'number'],
       ['Avg Unique Cards', a.aggregate.averageUniqueCards, b.aggregate.averageUniqueCards, 'decimal'],
+      ['Avg Mutations', a.aggregate.averageMutations || 0, b.aggregate.averageMutations || 0, 'decimal'],
       ...DATA.borderNames.map((name, i) => [`Avg ${name}`, a.aggregate.borderTotals[i] / a.aggregate.runs, b.aggregate.borderTotals[i] / b.aggregate.runs, 'decimal']),
     ];
     return `
@@ -681,12 +708,13 @@
       .rs-build-summary strong{font-size:.72rem}.rs-build-summary small,.rs-empty-build{color:var(--muted);font-size:.61rem}
       .rs-subtitle{margin:2px 0 7px;color:var(--muted);font-size:.62rem;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
       .rs-fixed-weather{margin-top:9px}.rs-fixed-weather label{display:grid;grid-template-columns:80px minmax(0,1fr);align-items:center;gap:8px}.rs-fixed-weather label>span{margin:0}
+      .rs-mutation-options{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:7px 0 12px}.rs-mutation-options>label{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel-2);font-size:.65rem;font-weight:800}.rs-mutation-options input{width:16px;height:16px;accent-color:var(--blue)}.rs-mutation-options label small{color:var(--muted);font-size:.55rem}.rs-mutation-options>small{grid-column:1/-1;color:var(--muted);font-size:.57rem;line-height:1.4}
       .rs-schedule{margin-top:9px}.rs-schedule-list{display:grid;gap:6px}.rs-schedule-row{display:grid;grid-template-columns:minmax(120px,1fr) 90px 90px 34px;gap:6px}.rs-schedule-row button{border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--muted);font-weight:900;cursor:pointer}
       .rs-schedule-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}.rs-schedule-foot small{color:var(--muted);font-size:.58rem;text-align:right}
       .rs-advanced{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}.rs-advanced summary{color:var(--muted);font-size:.64rem;font-weight:850;cursor:pointer}.rs-weather-structures{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:9px}.rs-weather-structures label>span{margin-bottom:4px}
       .rs-results{margin-bottom:30px}.rs-empty-results{display:grid;place-items:center;gap:5px;min-height:150px;padding:24px;border:1px dashed var(--line-2);border-radius:16px;color:var(--muted);text-align:center}.rs-empty-results strong{color:var(--text);font-size:.95rem}.rs-empty-results span{max-width:620px;font-size:.7rem}
       .rs-result-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.rs-result-head span{display:block;color:var(--blue);font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.09em}.rs-result-head strong{display:block;margin-top:3px;font-size:1.05rem}
-      .rs-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0}.rs-summary-grid>div{min-width:0;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}.rs-summary-grid span{display:block;color:var(--muted);font-size:.56rem;font-weight:800;text-transform:uppercase}.rs-summary-grid strong{display:block;margin-top:4px;font-size:.78rem;overflow-wrap:anywhere}
+      .rs-summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0}.rs-summary-grid>div{min-width:0;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2)}.rs-summary-grid span{display:block;color:var(--muted);font-size:.56rem;font-weight:800;text-transform:uppercase}.rs-summary-grid strong{display:block;margin-top:4px;font-size:.78rem;overflow-wrap:anywhere}
       .rs-result-tabs{display:flex;flex-wrap:wrap;gap:5px;margin:14px 0 10px;padding:4px;border:1px solid var(--line);border-radius:9px;background:var(--panel-2)}.rs-result-tabs button{flex:1 1 110px;min-height:31px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);font-size:.63rem;font-weight:850;cursor:pointer}.rs-result-tabs button.active{border-color:var(--line-2);background:var(--panel);color:#fff}
       .rs-table-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.rs-table-tools input{width:min(300px,60%)}.rs-table-tools span{color:var(--muted);font-size:.61rem}
       .rs-table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:10px}.rs-table{width:100%;border-collapse:collapse;min-width:650px}.rs-table th,.rs-table td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.rs-table tr:last-child td{border-bottom:0}.rs-table th{color:var(--muted);background:var(--panel-2);font-size:.55rem;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.rs-table td{font-size:.67rem}.rs-table td>strong{font-size:.7rem}.rs-table td>small,.rs-table td small{color:var(--muted);font-size:.57rem}.rs-table td>strong+small{display:block;margin-top:3px}.rs-row-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
