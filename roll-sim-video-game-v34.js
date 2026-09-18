@@ -1,12 +1,13 @@
 (() => {
   const DATA = globalThis.ROLL_SIM_DATA_V16;
   if (!DATA?.cards || !Array.isArray(DATA.cards)) return;
-  const currentEvents = [
-    { name: 'Fate Seamstress', rarity: 2000000000, currentEvent: true, eventFactor: 0.2 },
-    { name: 'Supreme Ozzy', rarity: 411000000, currentEvent: true, eventFactor: 0.2 },
-    { name: 'The Broken One', rarity: 400000000, currentEvent: true, eventFactor: 0.2 },
-    { name: 'Hera', rarity: 38450000, currentEvent: true, eventFactor: 0.2 },
-  ];
+
+  const retiredEvents = new Set(["Fate Seamstress","Eonus","Eclipseborn Luminant","Supreme Ozzy","The Broken One","Hera"]);
+  for (let index = DATA.cards.length - 1; index >= 0; index -= 1) {
+    if (retiredEvents.has(DATA.cards[index]?.name)) DATA.cards.splice(index, 1);
+  }
+  if (Array.isArray(DATA.currentEvents)) DATA.currentEvents.splice(0, DATA.currentEvents.length);
+
   const videoGame = [
     { name: 'Durante', rarity: 777777777, pack: 'Video Game' },
     { name: 'Heavenly Father', rarity: 100000000, pack: 'Video Game', weather: 'Rapture' },
@@ -21,19 +22,18 @@
     { name: 'Hollow', rarity: 500000, pack: 'Video Game', weather: 'Shroud' },
     { name: 'Steven', rarity: 80000, pack: 'Video Game' },
   ];
+
   const byName = new Map(DATA.cards.map((card) => [card.name, card]));
-  for (const source of [...currentEvents, ...videoGame]) {
+  for (const source of videoGame) {
     const current = byName.get(source.name);
     if (current) Object.assign(current, source);
-    else { const card = { ...source }; DATA.cards.push(card); byName.set(card.name, card); }
-    const card = byName.get(source.name);
-    if (source.currentEvent) {
-      card.rollable = true;
-      card.expiredEvent = false;
-      if ('expiredBaseRarity' in card) delete card.expiredBaseRarity;
+    else {
+      const card = { ...source };
+      DATA.cards.push(card);
+      byName.set(card.name, card);
     }
   }
+
   for (const card of DATA.cards) if (card.pack === 'Video Game') card.rollRequirement = 25000000;
-  if (Array.isArray(DATA.currentEvents)) DATA.currentEvents.splice(0, DATA.currentEvents.length, ...currentEvents.map((card) => card.name));
   DATA.cards.sort((a, b) => (Number(b.rarity) || 0) - (Number(a.rarity) || 0) || String(a.name).localeCompare(String(b.name)));
 })();
