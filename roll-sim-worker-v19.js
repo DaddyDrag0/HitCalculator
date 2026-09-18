@@ -1,4 +1,4 @@
-importScripts('./roll-sim-worker-v16.js?rev=20260826-1648');
+importScripts('./roll-sim-worker-v16.js?rev=20260918-mutation-2');
 
 // Rapture cards are not affected by the Chaos weather structure.
 (() => {
