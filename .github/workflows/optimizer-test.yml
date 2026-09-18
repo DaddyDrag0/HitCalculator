@@ -16,5 +16,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate Hit Calc update
+        run: |
+          node --check app-base.js
+          node hit-calc-mutation-selftest.cjs
       - name: Validate optimizer patches
         run: node optimizer-v4-selftest.cjs
