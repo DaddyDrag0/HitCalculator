@@ -35,6 +35,7 @@ const CHARMS = {
   'Forbidden Book': { Luck: 35, Platinum: 2, Crystal: 2, Ruby: 2, Galaxy: 2, Cooldown: 200 },
   "Angel's Halo": { Luck: 42, Platinum: 3, Crystal: 3, Ruby: 3, Galaxy: 3, Cooldown: 200 },
   'Forbidden Fruit': { Luck: 50, Platinum: 4, Crystal: 4, Ruby: 4, Galaxy: 4, Cooldown: 200 },
+  'Sacred Heart': { Luck: 58, Platinum: 5, Crystal: 5, Ruby: 5, Galaxy: 5, Cooldown: 200 },
   'Book of Life and Death': { Luck: 66, Platinum: 6, Crystal: 6, Ruby: 6, Galaxy: 6, Cooldown: 200 },
 };
 
@@ -83,7 +84,7 @@ function chaska(points, rate) {
 }
 function structureMultiplier(kind, level) {
   const lvl = Math.max(0, Number(level) || 0);
-  if (kind === 'Luck' || kind === 'Speed') return 1 + 0.5 * lvl / 7;
+  if (kind === 'Luck' || kind === 'Speed') return lvl >= 8 ? 1.6 : 1 + 0.5 * lvl / 7;
   return 1 + lvl / 5;
 }
 function dungeonBonus(build, name) {
@@ -101,7 +102,7 @@ function baseLuck(build, weather, surgeActive) {
   if (build.potions?.cursed) luck *= 1.5;
   if (build.potions?.elixir) luck *= 2;
   if (build.potions?.eventLuck) luck *= 1.25;
-  luck *= structureMultiplier('Luck', clampLevel(build.structures?.Luck, 7));
+  luck *= structureMultiplier('Luck', clampLevel(build.structures?.Luck, 8));
   luck += dungeonBonus(build, 'Luck');
   luck += chaska(build.chaska?.Luck, 0.25);
   if (build.modifiers?.quickdraw) luck *= 0.8;
@@ -117,7 +118,7 @@ function rollsPerSecond(build, weather) {
   speed += dungeonBonus(build, 'Speed');
   if (build.modifiers?.quickdraw) speed *= 1.1;
   if (build.modifiers?.heavyHand) speed *= 0.9;
-  return Math.max(0, (speed / 100) * structureMultiplier('Speed', clampLevel(build.structures?.Speed, 7)) * (weather === 'Time Storm' ? 2 : 1));
+  return Math.max(0, (speed / 100) * structureMultiplier('Speed', clampLevel(build.structures?.Speed, 8)) * (weather === 'Time Storm' ? 2 : 1));
 }
 function baseBorderMultipliers(build, weather) {
   const charm = CHARMS[build.charm] || {};
