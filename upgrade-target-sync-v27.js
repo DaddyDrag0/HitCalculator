@@ -20,7 +20,7 @@
     'Crystal Gem':{Luck:12,Platinum:.5,Crystal:.5,Cooldown:100}, 'Dark Star':{Luck:15,Platinum:.5,Crystal:.5,Ruby:.5,Galaxy:.5,Cooldown:125},
     'Infinity Gem':{Luck:20,Platinum:1,Crystal:1,Ruby:1,Galaxy:1,Cooldown:150}, 'Lucky Crown':{Luck:27,Platinum:1.5,Crystal:1.5,Ruby:1.5,Galaxy:1.5,Cooldown:175},
     'Forbidden Book':{Luck:35,Platinum:2,Crystal:2,Ruby:2,Galaxy:2,Cooldown:200}, "Angel's Halo":{Luck:42,Platinum:3,Crystal:3,Ruby:3,Galaxy:3,Cooldown:200},
-    'Forbidden Fruit':{Luck:50,Platinum:4,Crystal:4,Ruby:4,Galaxy:4,Cooldown:200}, 'Book of Life and Death':{Luck:66,Platinum:6,Crystal:6,Ruby:6,Galaxy:6,Cooldown:200},
+    'Forbidden Fruit':{Luck:50,Platinum:4,Crystal:4,Ruby:4,Galaxy:4,Cooldown:200}, 'Sacred Heart':{Luck:58,Platinum:5,Crystal:5,Ruby:5,Galaxy:5,Cooldown:200}, 'Book of Life and Death':{Luck:66,Platinum:6,Crystal:6,Ruby:6,Galaxy:6,Cooldown:200},
   };
   const D = { Luck:10, Speed:10, Platinum:.25, Crystal:.5, Ruby:.75, Galaxy:2 };
   const TU = { second:1, minute:60, hour:3600, day:86400, week:604800 };
@@ -39,7 +39,7 @@
   const on = (id) => !!$(id)?.checked;
   const lvl = (id, max) => Math.max(0, Math.min(max, Math.floor(num(id))));
   const skill = (name, id) => SK[name][lvl(id, SK[name].length - 1)] || 0;
-  const sm = (kind, level) => kind === 'Luck' || kind === 'Speed' ? 1 + .5 * level / 7 : 1 + level / 5;
+  const sm = (kind, level) => kind === 'Luck' || kind === 'Speed' ? (level >= 8 ? 1.6 : 1 + .5 * level / 7) : 1 + level / 5;
 
   function chaska(points, rate) {
     let left = Math.max(0, Math.floor(Number(points) || 0)), block = 0, total = 0;
@@ -100,7 +100,7 @@
       Platinum:skill('Platinum','uvSkillPlatinum'), Crystal:skill('Crystal','uvSkillCrystal'), Ruby:skill('Ruby','uvSkillRuby'), Galaxy:skill('Galaxy','uvSkillGalaxy'),
     };
     const st = {
-      Luck:lvl('uvStructureLuck',7), Speed:lvl('uvStructureSpeed',7), Platinum:lvl('uvStructurePlatinum',5),
+      Luck:lvl('uvStructureLuck',8), Speed:lvl('uvStructureSpeed',8), Platinum:lvl('uvStructurePlatinum',5),
       Crystal:lvl('uvStructureCrystal',5), Ruby:lvl('uvStructureRuby',5), Galaxy:lvl('uvStructureGalaxy',5),
     };
 
