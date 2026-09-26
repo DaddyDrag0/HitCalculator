@@ -9,6 +9,23 @@
     Ruby: { denominator: 100000, multiplier: 100000 },
     Galaxy: { denominator: 1000000, multiplier: 1000000 },
   };
+  const PLAYER_STAT_AURAS = {
+    "Fortune's Bloom":{stat:'Luck',base:10,max:50},
+    'Verdant Haste':{stat:'RollSpeed',base:5,max:25},
+    'Unstable Growth':{stat:'Mutation',base:10,max:50},
+    'Platinum Clover':{stat:'Platinum',base:10,max:35},
+    'Crystal Blossom':{stat:'Crystal',base:10,max:35},
+    'Ruby Thorn':{stat:'Ruby',base:10,max:35},
+    'Astral Sprout':{stat:'Galaxy',base:10,max:35},
+    Worldroot:{stat:'AllStat',base:4,max:20},
+  };
+  const PLAYER_STAT_BORDER_PROGRESS={Base:0,Platinum:.25,Crystal:.5,Galaxy:1};
+  function playerStatAuraBonus(name,border,stat) {
+    const aura=PLAYER_STAT_AURAS[name];
+    if(!aura||(aura.stat!==stat&&aura.stat!=='AllStat'))return 0;
+    const progress=PLAYER_STAT_BORDER_PROGRESS[border]??0;
+    return aura.base+(aura.max-aura.base)*progress;
+  }
   const SKILLS = {
     Luck: { id:'uvSkillLuck', label:'Luck', values:[0,15,30,45,60,75,90,150], costs:[1,1,1,1,1,1,3] },
     Speed: { id:'uvSkillSpeed', label:'Roll Speed', values:[0,5,10,15,20,25,30,45], costs:[1,1,1,1,1,1,3] },
@@ -119,6 +136,8 @@
       if (el.type === 'checkbox') data[el.id] = { kind:'check', checked:!!el.checked };
       else data[el.id] = { kind:'value', value:String(el.value ?? '') };
     });
+    if ($('playerStatAura')) data.playerStatAura={kind:'value',value:String($('playerStatAura').value||'')};
+    if ($('playerStatAuraBorder')) data.playerStatAuraBorder={kind:'value',value:String($('playerStatAuraBorder').value||'Base')};
     return data;
   }
 
@@ -191,6 +210,8 @@
       divine:checkedOf(data,'uvPotDivine'), borderBoost:checkedOf(data,'uvBorderBoost'), timeStorm:checkedOf(data,'uvTimeStorm'),
       boss:checkedOf(data,'uvBossPot'), surge:checkedOf(data,'uvLuckySurge'), dice:checkedOf(data,'uvDice'),
       quickdraw:checkedOf(data,'uvQuickdraw'), heavyHand:checkedOf(data,'uvHeavyHand'),
+      playerStatAuraName:stringOf(data,'playerStatAura',''),
+      playerStatAuraBorder:stringOf(data,'playerStatAuraBorder','Base'),
     };
   }
 
@@ -209,6 +230,7 @@
     luck += chaskaBonus(allocation.chaska.Luck||0, CHASKA.Luck.rate);
     if (context.quickdraw) luck *= .8;
     if (context.heavyHand) luck *= 1.2;
+    luck *= 1 + playerStatAuraBonus(context.playerStatAuraName,context.playerStatAuraBorder,'Luck')/100;
 
     let speed = 100 + (context.potSpeed3?300:0) + (context.potLegendarySpeed?500:0) + (context.charm.Cooldown||0);
     speed *= 1 + (skillValue('Speed') + allStat)/100;
@@ -216,6 +238,7 @@
     speed += (allocation.dungeon.Speed||0) * DUNGEON.Speed.per;
     if (context.quickdraw) speed *= 1.1;
     if (context.heavyHand) speed *= .9;
+    speed *= 1 + playerStatAuraBonus(context.playerStatAuraName,context.playerStatAuraBorder,'RollSpeed')/100;
 
     const be = {};
     const boost = context.borderBoost ? 1.5 : 1;
@@ -226,6 +249,7 @@
       const dungeon = (allocation.dungeon[name]||0) * DUNGEON[name].per;
       const chaska = CHASKA[name] ? chaskaBonus(allocation.chaska[name]||0, CHASKA[name].rate) : 0;
       be[name] = (base*boost + dungeon + chaska) * divine;
+      be[name] *= 1 + playerStatAuraBonus(context.playerStatAuraName,context.playerStatAuraBorder,name)/100;
     }
     const cps = (speed/100) * structureMultiplier('Speed',context.structures.Speed) * (context.timeStorm?2:1);
     return { luck, speed, be, cps, boss:context.boss, surge:context.surge, dice:context.dice, timeStorm:context.timeStorm };
