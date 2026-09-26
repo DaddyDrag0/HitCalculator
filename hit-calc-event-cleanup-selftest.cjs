@@ -40,11 +40,11 @@ assert.deepEqual(Array.from(directContext.CARD_POOL, (card) => card.name), ['Arc
 
 const loader = fs.readFileSync('app.js', 'utf8')
 const index = fs.readFileSync('index.html', 'utf8')
-assert(loader.includes('app-base.js?rev=20260918-no-events-1'))
-assert(loader.includes('hit-calc-video-game-v34.js?rev=20260918-no-events-1'))
+assert(loader.includes('app-base.js?rev=20260926-stat-aura-weather-1'))
+assert(loader.includes('hit-calc-video-game-v34.js?rev=20260926-stat-aura-weather-1'))
 assert(loader.includes('roll-sim-data-v16.js?rev=20260918-no-events-1'))
 assert(loader.includes('roll-sim-event-expiry-v32.js?rev=20260918-no-events-1'))
 assert(loader.includes('roll-sim-video-game-v34.js?rev=20260918-no-events-1'))
-assert(index.includes("const version='20260918-no-events-1';"))
+assert(index.includes("const version='20260926-stat-aura-weather-1';"))
 
 console.log('Hit Calc expired-event cleanup self-test passed.')
