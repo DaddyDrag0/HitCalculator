@@ -92,6 +92,10 @@
     return pct >= 10 ? `${fixed(pct, 1)}%` : `${fixed(pct, 2)}%`;
   }
 
+  function auraBonus(stat) {
+    try { return Number(window.HIT_CALC_PLAYER_STAT_AURAS?.auraBonus?.(stat)) || 0; } catch { return 0; }
+  }
+
   function stats() {
     const rolls = Math.max(0, Math.floor(num('uvRolls')));
     const charm = CH[$('uvCharm')?.value] || {};
@@ -116,6 +120,7 @@
     luck += chaska(num('uvChaskaLuck'), .25);
     if (on('uvQuickdraw')) luck *= .8;
     if (on('uvHeavyHand')) luck *= 1.2;
+    luck *= 1 + auraBonus('Luck') / 100;
 
     let speed = 100 + (on('uvPotSpeed3') ? 300 : 0) + (on('uvPotLegendarySpeed') ? 500 : 0) + (charm.Cooldown || 0);
     speed *= 1 + (s.RollSpeed + s.AllStat) / 100;
@@ -123,6 +128,7 @@
     speed += lvl('uvDungeonSpeed', 25) * D.Speed;
     if (on('uvQuickdraw')) speed *= 1.1;
     if (on('uvHeavyHand')) speed *= .9;
+    speed *= 1 + auraBonus('RollSpeed') / 100;
 
     const all = 1 + s.AllStat / 100;
     const boost = on('uvBorderBoost') ? 1.5 : 1;
@@ -135,6 +141,7 @@
       let base = (1 + (charm[name] || 0) + s[name]) * all;
       base *= sm(name, st[name]);
       be[name] = (base * boost + lvl(`uvDungeon${name}`, 25) * D[name] + cb[name]) * divine;
+      be[name] *= 1 + auraBonus(name) / 100;
     }
 
     const timeStorm = on('uvTimeStorm');
