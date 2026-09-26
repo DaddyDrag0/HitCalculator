@@ -19,7 +19,8 @@
       if (!latest || latest === CURRENT) return;
 
       const url = new URL(window.location.href);
-      url.searchParams.set('__siteVersion', latest);
+      url.search = '';
+      url.searchParams.set('v', latest);
       window.location.replace(url.toString());
     } catch (error) {
       console.debug('[Hit Calc] Version check skipped:', error);
