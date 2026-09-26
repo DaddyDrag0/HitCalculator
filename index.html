@@ -10,8 +10,13 @@
 <body>
   <div class="boot">Loading Hit Calc…</div>
   <script>
+  try {
+    if (window.location.search) {
+      history.replaceState(null, '', window.location.pathname + window.location.hash);
+    }
+  } catch {}
   (async()=>{
-    const version='20260926-stat-aura-sync-3';
+    const version='20260926-clean-url-4';
     try{
       const response=await fetch(`./index-base.html?rev=${version}`,{cache:'no-store'});
       if(!response.ok)throw new Error(`HTTP ${response.status}`);
