@@ -44,7 +44,7 @@ assert(loader.includes('roll-simulator-v15.js?rev=20260926-stat-aura-weather-1')
 assert(loader.includes('roll-sim-parallel-v19.js?rev=20260926-stat-aura-weather-1'))
 
 assert(loader.includes('app-base.js?rev=20260926-stat-aura-weather-1'))
-assert(index.includes("const version='20260926-stat-aura-sync-3';"))
+assert(index.includes("const version='20260926-clean-url-4';"))
 
 const base = 1 / 750
 assert.equal(Math.round(1 / (base * 1.25)), 600)
