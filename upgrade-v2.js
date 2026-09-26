@@ -112,6 +112,14 @@
     return values[level(id, values.length - 1)] || 0;
   }
 
+  function playerStatAuraBonus(stat) {
+    try {
+      return Number(window.HIT_CALC_PLAYER_STAT_AURAS?.auraBonus?.(stat)) || 0;
+    } catch {
+      return 0;
+    }
+  }
+
   function calculateStats() {
     const rolls = Math.max(0, Math.floor(num('uvRolls', 0)));
     const charm = CHARMS[$('uvCharm')?.value] || {};
@@ -135,11 +143,13 @@
     luck += chaska(num('uvChaskaLuck'), 0.25);
     if (quickdraw) luck *= 0.8;
     if (heavyHand) luck *= 1.2;
+    luck *= 1 + playerStatAuraBonus('Luck') / 100;
 
     let rollSpeed = 100 + (charm.Cooldown || 0);
     rollSpeed *= 1 + (skillValues.RollSpeed + skillValues.AllStat) / 100;
     if (quickdraw) rollSpeed *= 1.1;
     if (heavyHand) rollSpeed *= 0.9;
+    rollSpeed *= 1 + playerStatAuraBonus('RollSpeed') / 100;
 
     const allStatMultiplier = 1 + skillValues.AllStat / 100;
     const borderDisplay = {};
@@ -155,6 +165,9 @@
       nonChaska *= structureMultiplier(name, structures[name]);
       borderDisplay[name] = nonChaska + chaskaBorder[name];
       borderEffective[name] = nonChaska * borderBoost + chaskaBorder[name];
+      const auraMultiplier = 1 + playerStatAuraBonus(name) / 100;
+      borderDisplay[name] *= auraMultiplier;
+      borderEffective[name] *= auraMultiplier;
     }
 
     const speedStructure = structureMultiplier('Speed', structures.Speed);
@@ -292,7 +305,7 @@
       </section>
       <section class="uv-workbench">
         <div class="uv-stack">
-          <article class="uv-panel uv-account"><div class="uv-panel-title"><span>01</span><strong>Account</strong></div><label class="uv-big-field"><span>Total Rolls</span><input id="uvRolls" type="number" min="0" step="1" value="0"></label><label class="uv-big-field"><span>Charm</span><select id="uvCharm"></select></label></article>
+          <article class="uv-panel uv-account"><div class="uv-panel-title"><span>01</span><strong>Account</strong></div><label class="uv-big-field"><span>Total Rolls</span><input id="uvRolls" type="number" min="0" step="1" value="0"></label><label class="uv-big-field"><span>Charm</span><select id="uvCharm"></select></label><label class="uv-big-field"><span>Stat Aura</span><select id="playerStatAura"><option value="">None</option><option>Fortune's Bloom</option><option>Verdant Haste</option><option>Unstable Growth</option><option>Platinum Clover</option><option>Crystal Blossom</option><option>Ruby Thorn</option><option>Astral Sprout</option><option>Worldroot</option></select></label><label class="uv-big-field"><span>Stat Aura Border</span><select id="playerStatAuraBorder"><option>Base</option><option>Platinum</option><option>Crystal</option><option>Galaxy</option></select></label></article>
           <article class="uv-panel"><div class="uv-panel-title"><span>02</span><strong>Skill Tree</strong></div><div class="uv-level-list">${field('Luck', 'uvSkillLuck', 7)}${field('Roll Speed', 'uvSkillSpeed', 7)}${field('All Stat', 'uvSkillAll', 3)}${field('Platinum', 'uvSkillPlatinum', 6)}${field('Crystal', 'uvSkillCrystal', 6)}${field('Ruby', 'uvSkillRuby', 6)}${field('Galaxy', 'uvSkillGalaxy', 6)}</div></article>
         </div>
         <div class="uv-stack uv-center-stack">
