@@ -45,6 +45,6 @@ assert(loader.includes('hit-calc-video-game-v34.js?rev=20260926-stat-aura-weathe
 assert(loader.includes('roll-sim-data-v16.js?rev=20260918-no-events-1'))
 assert(loader.includes('roll-sim-event-expiry-v32.js?rev=20260918-no-events-1'))
 assert(loader.includes('roll-sim-video-game-v34.js?rev=20260918-no-events-1'))
-assert(index.includes("const version='20260926-stat-aura-sync-3';"))
+assert(index.includes("const version='20260926-clean-url-4';"))
 
 console.log('Hit Calc expired-event cleanup self-test passed.')
