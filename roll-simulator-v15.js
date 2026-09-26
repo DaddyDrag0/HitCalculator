@@ -121,6 +121,10 @@
         borderBoost: checked('uvBorderBoost'), bossPot: checked('uvBossPot'), luckySurge: checked('uvLuckySurge'),
         dice: checked('uvDice'), quickdraw: checked('uvQuickdraw'), heavyHand: checked('uvHeavyHand'), vicissitudes: checked('uvVicissitudes'),
       },
+      playerStatAura: {
+        name: $('playerStatAura')?.value || '',
+        border: $('playerStatAuraBorder')?.value || 'Base',
+      },
     };
   }
 
@@ -176,6 +180,7 @@
     if (build.modifiers?.vicissitudes) active.push('Vicissitudes');
     if (build.modifiers?.quickdraw) active.push('Quickdraw');
     if (build.modifiers?.heavyHand) active.push('Heavy Hand');
+    if (build.playerStatAura?.name) active.push(`${build.playerStatAura.name} (${build.playerStatAura.border || 'Base'})`);
     return `<strong>${formatNumber(build.rolls)} rolls · ${escapeHtml(build.charm || 'None')}</strong><small>${active.length ? escapeHtml(active.join(' · ')) : 'No relic modifiers selected'}</small>`;
   }
 
