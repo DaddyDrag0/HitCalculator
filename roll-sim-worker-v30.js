@@ -1,5 +1,63 @@
 importScripts('./roll-sim-worker-v19.js?rev=20260918-mutation-2');
 
+const PLAYER_STAT_AURAS_V41 = {
+  "Fortune's Bloom": { stat: 'Luck', base: 10, max: 50 },
+  'Verdant Haste': { stat: 'RollSpeed', base: 5, max: 25 },
+  'Unstable Growth': { stat: 'Mutation', base: 10, max: 50 },
+  'Platinum Clover': { stat: 'Platinum', base: 10, max: 35 },
+  'Crystal Blossom': { stat: 'Crystal', base: 10, max: 35 },
+  'Ruby Thorn': { stat: 'Ruby', base: 10, max: 35 },
+  'Astral Sprout': { stat: 'Galaxy', base: 10, max: 35 },
+  Worldroot: { stat: 'AllStat', base: 4, max: 20 },
+};
+const PLAYER_STAT_BORDER_V41 = { Base: 0, Platinum: 0.25, Crystal: 0.5, Galaxy: 1 };
+
+function playerStatAuraBonusV41(build, stat) {
+  const selected = build?.playerStatAura;
+  const aura = PLAYER_STAT_AURAS_V41[selected?.name];
+  if (!aura || (aura.stat !== stat && aura.stat !== 'AllStat')) return 0;
+  const progress = PLAYER_STAT_BORDER_V41[selected?.border] ?? 0;
+  return aura.base + (aura.max - aura.base) * progress;
+}
+
+const baseLuckV41 = baseLuck;
+baseLuck = function baseLuckWithPlayerStatAuraV41(build, weather, surgeActive) {
+  let value = baseLuckV41(build, weather, surgeActive);
+  const aura = playerStatAuraBonusV41(build, 'Luck');
+  if (aura > 0) value *= 1 + aura / 100;
+  if (weather === 'Virus' || weather === 'Manga') value *= 1.25;
+  return Math.max(0, value);
+};
+
+const rollsPerSecondV41 = rollsPerSecond;
+rollsPerSecond = function rollsPerSecondWithPlayerStatAuraV41(build, weather) {
+  const value = rollsPerSecondV41(build, weather);
+  const aura = playerStatAuraBonusV41(build, 'RollSpeed');
+  return Math.max(0, value * (1 + aura / 100));
+};
+
+const baseBorderMultipliersV41 = baseBorderMultipliers;
+baseBorderMultipliers = function baseBorderMultipliersWithPlayerStatAuraV41(build, weather) {
+  const out = baseBorderMultipliersV41(build, weather);
+  if (weather === 'Meteor Shower') out.Platinum *= 1.15;
+  if (weather === 'Blood Rain') out.Ruby *= 1.15;
+  if (weather === 'Armageddon') {
+    out.Platinum *= 1.10;
+    out.Ruby *= 1.10;
+  }
+  if (weather === 'Manga') {
+    out.Platinum *= 1.05;
+    out.Crystal *= 1.05;
+    out.Ruby *= 1.05;
+    out.Galaxy *= 1.05;
+  }
+  for (const name of BN) {
+    const aura = playerStatAuraBonusV41(build, name);
+    if (aura > 0) out[name] *= 1 + aura / 100;
+  }
+  return out;
+};
+
 // High-end RNG fix:
 // - Cards are sampled from the exact sequential card distribution.
 // - Borders are then rolled independently (P, C, R, G), matching the game.
@@ -45,6 +103,8 @@ function mutationChanceV30(scenario) {
   let chance = 1 / 750;
   if (scenario?.mutation?.pass) chance *= 1.25;
   if (scenario?.mutation?.potion) chance *= 1.2;
+  const aura = playerStatAuraBonusV41(scenario?.build, 'Mutation');
+  if (aura > 0) chance *= 1 + aura / 100;
   return Math.min(1, Math.max(0, chance));
 }
 
