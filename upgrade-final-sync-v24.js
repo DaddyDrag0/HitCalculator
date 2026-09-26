@@ -24,17 +24,18 @@
   const sm = (kind,level) => (kind==='Luck'||kind==='Speed' ? (level>=8?1.6:1+.5*level/7) : 1+level/5);
   function chaska(points,rate){let left=Math.max(0,Math.floor(Number(points)||0)),block=0,total=0;while(left>0){const n=Math.min(50,left);total+=n*rate*.85**block;left-=n;block++;}return total;}
   function fmt(value){if(!Number.isFinite(value))return '—';const abs=Math.abs(value),s=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];if(abs<1000)return value.toLocaleString(undefined,{maximumFractionDigits:2});const t=Math.floor(Math.log10(abs)/3);if(t>=s.length)return value.toExponential(2);const n=value/1000**t,d=Math.abs(n)>=100?0:Math.abs(n)>=10?1:2;return `${n.toFixed(d).replace(/\.0+$/,'').replace(/(\.\d*?[1-9])0+$/,'$1')}${s[t]}`;}
+  function auraBonus(stat){try{return Number(window.HIT_CALC_PLAYER_STAT_AURAS?.auraBonus?.(stat))||0;}catch{return 0;}}
   function calc(){
     const rolls=Math.max(0,Math.floor(num('uvRolls'))), charm=CH[$('uvCharm')?.value]||{};
     const s={Luck:skill('Luck','uvSkillLuck'),RollSpeed:skill('RollSpeed','uvSkillSpeed'),AllStat:skill('AllStat','uvSkillAll'),Platinum:skill('Platinum','uvSkillPlatinum'),Crystal:skill('Crystal','uvSkillCrystal'),Ruby:skill('Ruby','uvSkillRuby'),Galaxy:skill('Galaxy','uvSkillGalaxy')};
     const st={Luck:lvl('uvStructureLuck',8),Speed:lvl('uvStructureSpeed',8),Platinum:lvl('uvStructurePlatinum',5),Crystal:lvl('uvStructureCrystal',5),Ruby:lvl('uvStructureRuby',5),Galaxy:lvl('uvStructureGalaxy',5)};
     let luck=1+Math.floor(rolls/1e6)*.1+(charm.Luck||0); luck*=1+(s.Luck+s.AllStat)/100;
     if(on('uvPotLuck3'))luck+=25;if(on('uvPotLegendaryLuck'))luck+=40;if(on('uvPotCursed'))luck*=1.5;if(on('uvPotElixir'))luck*=2;if(on('uvPotEventLuck'))luck*=1.25;
-    luck*=sm('Luck',st.Luck);luck+=lvl('uvDungeonLuck',25)*D.Luck;luck+=chaska(num('uvChaskaLuck'),.25);if(on('uvQuickdraw'))luck*=.8;if(on('uvHeavyHand'))luck*=1.2;
-    let speed=100+(on('uvPotSpeed3')?300:0)+(on('uvPotLegendarySpeed')?500:0)+(charm.Cooldown||0);speed*=1+(s.RollSpeed+s.AllStat)/100;if(on('uvPotEventSpeed'))speed*=1.25;speed+=lvl('uvDungeonSpeed',25)*D.Speed;if(on('uvQuickdraw'))speed*=1.1;if(on('uvHeavyHand'))speed*=.9;
+    luck*=sm('Luck',st.Luck);luck+=lvl('uvDungeonLuck',25)*D.Luck;luck+=chaska(num('uvChaskaLuck'),.25);if(on('uvQuickdraw'))luck*=.8;if(on('uvHeavyHand'))luck*=1.2;luck*=1+auraBonus('Luck')/100;
+    let speed=100+(on('uvPotSpeed3')?300:0)+(on('uvPotLegendarySpeed')?500:0)+(charm.Cooldown||0);speed*=1+(s.RollSpeed+s.AllStat)/100;if(on('uvPotEventSpeed'))speed*=1.25;speed+=lvl('uvDungeonSpeed',25)*D.Speed;if(on('uvQuickdraw'))speed*=1.1;if(on('uvHeavyHand'))speed*=.9;speed*=1+auraBonus('RollSpeed')/100;
     const all=1+s.AllStat/100,boost=on('uvBorderBoost')?1.5:1,divine=on('uvPotDivine')?1.1:1;
     const cb={Platinum:chaska(num('uvChaskaPlatinum'),.05),Crystal:chaska(num('uvChaskaCrystal'),.10),Ruby:0,Galaxy:chaska(num('uvChaskaGalaxy'),.25)}, borders={};
-    for(const name of BN){let base=(1+(charm[name]||0)+s[name])*all;base*=sm(name,st[name]);borders[name]=(base*boost+lvl(`uvDungeon${name}`,25)*D[name]+cb[name])*divine;}
+    for(const name of BN){let base=(1+(charm[name]||0)+s[name])*all;base*=sm(name,st[name]);borders[name]=(base*boost+lvl(`uvDungeon${name}`,25)*D[name]+cb[name])*divine;borders[name]*=1+auraBonus(name)/100;}
     return {luck,speed,borders};
   }
   let writing=false;
