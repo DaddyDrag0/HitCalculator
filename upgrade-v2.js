@@ -92,15 +92,35 @@
     return `${fixed(percent, 2)}%`;
   }
   function chaska(points, rate) {
-    let remaining = Math.max(0, Math.floor(Number(points) || 0));
-    let block = 0;
+    const totalPoints = Math.max(0, Math.floor(Number(points) || 0));
+    if (totalPoints <= 0) return 0;
+
+    // Chaska diminishing-return breakpoints:
+    // 1-500: every 50 points
+    // 501-1000: every 100 points
+    // 1001-2000: every 250 points
+    // 2001-3000: every 500 points
+    // 3001-4000: one final diminish at 4000
+    // 4000+: the final rate remains forever.
+    const breakpoints = [
+      50, 100, 150, 200, 250, 300, 350, 400, 450, 500,
+      600, 700, 800, 900, 1000,
+      1250, 1500, 1750, 2000,
+      2500, 3000, 4000,
+    ];
+
     let total = 0;
-    while (remaining > 0) {
-      const amount = Math.min(50, remaining);
-      total += amount * rate * Math.pow(0.85, block);
-      remaining -= amount;
-      block += 1;
+    let start = 0;
+    let multiplier = 1;
+    for (const end of breakpoints) {
+      if (totalPoints <= start) break;
+      const amount = Math.min(totalPoints, end) - start;
+      if (amount > 0) total += amount * rate * multiplier;
+      if (totalPoints <= end) return total;
+      start = end;
+      multiplier *= 0.85;
     }
+    if (totalPoints > start) total += (totalPoints - start) * rate * multiplier;
     return total;
   }
   function structureMultiplier(kind, lvl) {
