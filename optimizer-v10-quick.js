@@ -6,7 +6,7 @@
     source = replaceRequired(
       source,
       '<div class="opt-run-row"><button type="button" id="optRun" class="opt-run">Optimize Build</button></div>',
-      '<div class="opt-run-row"><button type="button" id="optQuick" class="opt-run opt-quick-run">Quick Optimize</button><button type="button" id="optRun" class="opt-run">Full Optimize</button><small class="opt-quick-note">Quick uses the same formulas and Chaska rules, but skips the ultra-deep neighborhood search and simulation validation for roughly 10×+ faster results.</small></div>',
+      '<div class="opt-run-row"><button type="button" id="optQuick" class="opt-run opt-quick-run">Quick Optimize</button><button type="button" id="optRun" class="opt-run">Full Optimize</button></div>',
       'quick optimizer button'
     );
 
@@ -23,7 +23,7 @@
     (actions||out).insertAdjacentElement(actions?'beforebegin':'beforeend',box);
     if(!$('optQuickStyles')){
       const style=document.createElement('style');style.id='optQuickStyles';
-      style.textContent='#optimizerCalcV1 .opt-run-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#optimizerCalcV1 .opt-quick-run{background:var(--panel-2);color:var(--text);border-color:var(--line-2)}#optimizerCalcV1 .opt-quick-note{flex-basis:100%;color:var(--muted);font-size:.58rem;line-height:1.4}#optimizerCalcV1 .opt-quick-summary{display:grid;gap:4px;margin-top:8px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}#optimizerCalcV1 .opt-quick-summary span{display:block;color:var(--muted);font-size:.52rem;font-weight:850;text-transform:uppercase}#optimizerCalcV1 .opt-quick-summary strong{display:block;margin-top:2px;font-size:.7rem}#optimizerCalcV1 .opt-quick-summary small{color:var(--muted);font-size:.58rem;line-height:1.45}';
+      style.textContent='#optimizerCalcV1 .opt-run-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#optimizerCalcV1 .opt-quick-run{background:var(--panel-2);color:var(--text);border-color:var(--line-2)}#optimizerCalcV1 .opt-quick-summary{display:grid;gap:4px;margin-top:8px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}#optimizerCalcV1 .opt-quick-summary span{display:block;color:var(--muted);font-size:.52rem;font-weight:850;text-transform:uppercase}#optimizerCalcV1 .opt-quick-summary strong{display:block;margin-top:2px;font-size:.7rem}#optimizerCalcV1 .opt-quick-summary small{color:var(--muted);font-size:.58rem;line-height:1.45}';
       document.head.append(style);
     }
   }
