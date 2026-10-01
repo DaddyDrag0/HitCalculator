@@ -16,7 +16,7 @@
     }
   } catch {}
   (async()=>{
-    const version='20260926-clean-url-4';
+    const version='20261001-quick-opt-1';
     try{
       const response=await fetch(`./index-base.html?rev=${version}`,{cache:'no-store'});
       if(!response.ok)throw new Error(`HTTP ${response.status}`);
