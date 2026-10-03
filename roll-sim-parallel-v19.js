@@ -209,7 +209,7 @@
       };
 
       for (let slot = 0; slot < concurrency; slot += 1) {
-        const worker = new NativeWorker('./roll-sim-worker-v30.js?rev=20260926-stat-aura-weather-1');
+        const worker = new NativeWorker('./roll-sim-worker-v30.js?rev=20261003-chaska-breakpoints-1');
         this._workers.push(worker);
         worker.addEventListener('message', (event) => {
           if (failed || this._cancelled) return;
