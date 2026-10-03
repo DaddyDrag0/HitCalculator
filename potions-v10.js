@@ -78,18 +78,29 @@
   };
   const lvl = (id, max) => Math.max(0, Math.min(max, Math.floor(num(id))));
   const skill = (name, id) => SK[name][lvl(id, SK[name].length - 1)] || 0;
-  const sm = (kind, level) => (kind === 'Luck' || kind === 'Speed' ? 1 + 0.5 * level / 7 : 1 + level / 5);
+  const sm = (kind, level) => (kind === 'Luck' || kind === 'Speed' ? (level >= 8 ? 1.6 : 1 + 0.5 * level / 7) : 1 + level / 5);
 
   function chaska(points, rate) {
-    let remaining = Math.max(0, Math.floor(Number(points) || 0));
-    let block = 0;
+    const totalPoints = Math.max(0, Math.floor(Number(points) || 0));
+    if (totalPoints <= 0) return 0;
+    const breakpoints = [
+      50, 100, 150, 200, 250, 300, 350, 400, 450, 500,
+      600, 700, 800, 900, 1000,
+      1250, 1500, 1750, 2000,
+      2500, 3000, 4000,
+    ];
     let total = 0;
-    while (remaining > 0) {
-      const amount = Math.min(50, remaining);
-      total += amount * rate * 0.85 ** block;
-      remaining -= amount;
-      block += 1;
+    let start = 0;
+    let multiplier = 1;
+    for (const end of breakpoints) {
+      if (totalPoints <= start) break;
+      const amount = Math.min(totalPoints, end) - start;
+      if (amount > 0) total += amount * rate * multiplier;
+      if (totalPoints <= end) return total;
+      start = end;
+      multiplier *= 0.85;
     }
+    if (totalPoints > start) total += (totalPoints - start) * rate * multiplier;
     return total;
   }
 
@@ -126,8 +137,8 @@
       Galaxy: skill('Galaxy', 'uvSkillGalaxy'),
     };
     const st = {
-      Luck: lvl('uvStructureLuck', 7),
-      Speed: lvl('uvStructureSpeed', 7),
+      Luck: lvl('uvStructureLuck', 8),
+      Speed: lvl('uvStructureSpeed', 8),
       Platinum: lvl('uvStructurePlatinum', 5),
       Crystal: lvl('uvStructureCrystal', 5),
       Ruby: lvl('uvStructureRuby', 5),
