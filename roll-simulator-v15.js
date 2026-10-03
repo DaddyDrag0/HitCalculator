@@ -414,7 +414,7 @@
 
   function ensureWorker() {
     if (state.worker) return state.worker;
-    const worker = new Worker('./roll-sim-worker-v15.js?rev=20260824-2004');
+    const worker = new Worker('./roll-sim-worker-v15.js?rev=20261003-chaska-breakpoints-1');
     worker.addEventListener('message', handleWorkerMessage);
     worker.addEventListener('error', (event) => finishWithError(event.message || 'The simulator worker failed to start.'));
     state.worker = worker;
