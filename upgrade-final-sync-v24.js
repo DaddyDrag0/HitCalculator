@@ -22,7 +22,7 @@
   const lvl = (id,max) => Math.max(0,Math.min(max,Math.floor(num(id))));
   const skill = (name,id) => SK[name][lvl(id,SK[name].length-1)]||0;
   const sm = (kind,level) => (kind==='Luck'||kind==='Speed' ? (level>=8?1.6:1+.5*level/7) : 1+level/5);
-  function chaska(points,rate){let left=Math.max(0,Math.floor(Number(points)||0)),block=0,total=0;while(left>0){const n=Math.min(50,left);total+=n*rate*.85**block;left-=n;block++;}return total;}
+  function chaska(points,rate){const totalPoints=Math.max(0,Math.floor(Number(points)||0));if(totalPoints<=0)return 0;const breakpoints=[50,100,150,200,250,300,350,400,450,500,600,700,800,900,1000,1250,1500,1750,2000,2500,3000,4000];let total=0,start=0,multiplier=1;for(const end of breakpoints){if(totalPoints<=start)break;const amount=Math.min(totalPoints,end)-start;if(amount>0)total+=amount*rate*multiplier;if(totalPoints<=end)return total;start=end;multiplier*=.85;}if(totalPoints>start)total+=(totalPoints-start)*rate*multiplier;return total;}
   function fmt(value){if(!Number.isFinite(value))return '—';const abs=Math.abs(value),s=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];if(abs<1000)return value.toLocaleString(undefined,{maximumFractionDigits:2});const t=Math.floor(Math.log10(abs)/3);if(t>=s.length)return value.toExponential(2);const n=value/1000**t,d=Math.abs(n)>=100?0:Math.abs(n)>=10?1:2;return `${n.toFixed(d).replace(/\.0+$/,'').replace(/(\.\d*?[1-9])0+$/,'$1')}${s[t]}`;}
   function auraBonus(stat){try{return Number(window.HIT_CALC_PLAYER_STAT_AURAS?.auraBonus?.(stat))||0;}catch{return 0;}}
   function calc(){
