@@ -1,4 +1,4 @@
-importScripts('./roll-sim-worker-v19.js?rev=20260918-mutation-2');
+importScripts('./roll-sim-worker-v19.js?rev=20261003-chaska-breakpoints-1');
 
 const PLAYER_STAT_AURAS_V41 = {
   "Fortune's Bloom": { stat: 'Luck', base: 10, max: 50 },
