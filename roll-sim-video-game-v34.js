@@ -61,7 +61,8 @@
     const card = DATA.cards.find((item) => item.name === source.name);
     const update = { ...source };
     if (source.expiresAt) {
-      update.currentEvent = nowSeconds < source.expiresAt;
+      update.currentEvent = nowSeconds < source.expiresAt && source.collection !== 'Halloween3';
+      if (update.currentEvent) update.eventFactor = 0.5;
       update.expiredEvent = nowSeconds >= source.expiresAt;
     }
     if (card) Object.assign(card, update);
