@@ -136,7 +136,7 @@ function baseBorderMultipliers(build, weather) {
   const all = 1 + skill(build, 'All') / 100;
   const borderBoost = build.modifiers?.borderBoost ? 1.5 : 1;
   const divine = build.potions?.divine ? 1.1 : 1;
-  const chaskaRates = { Platinum: 0.05, Crystal: 0.10, Ruby: 0, Galaxy: 0.25 };
+  const chaskaRates = { Platinum: 0.05, Crystal: 0.10, Ruby: 0.15, Galaxy: 0.25 };
   const out = {};
   for (const name of BN) {
     let normal = (1 + (charm[name] || 0) + skill(build, name)) * all;
