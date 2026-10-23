@@ -1,4 +1,4 @@
-importScripts('./roll-sim-worker-v30.js?rev=20260918-mutation-3');
+importScripts('./roll-sim-worker-v30.js?rev=20261023-halloween-source-1');
 
 // Exact-worker performance guard.
 // Chaska's diminishing returns are a geometric series. The old worker walked
