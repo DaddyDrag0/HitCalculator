@@ -57,7 +57,7 @@ const required = [
   'function deepSearchCandidates(',
   'function validateFinalists(',
   "playerStatAura:{name:context.playerStatAuraName||'',border:context.playerStatAuraBorder||'Base'}",
-  "new Worker('./roll-sim-worker-v30.js?rev=20260926-stat-aura-weather-1')",
+  "new Worker('./roll-sim-worker-v30.js?rev=",
   'Math.min(172800',
   "settings.seconds>86400?12:20",
   'for (let round=0;round<8;round+=1)',
