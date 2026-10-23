@@ -1,4 +1,5 @@
 importScripts('./roll-sim-data-v16.js?rev=20260824-2004');
+importScripts('./roll-sim-halloween-2026.js?rev=20261023-halloween-1');
 
 const DATA = globalThis.ROLL_SIM_DATA_V16;
 const CARDS = DATA.cards;
