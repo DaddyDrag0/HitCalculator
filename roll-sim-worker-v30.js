@@ -26,6 +26,7 @@ baseLuck = function baseLuckWithPlayerStatAuraV41(build, weather, surgeActive) {
   const aura = playerStatAuraBonusV41(build, 'Luck');
   if (aura > 0) value *= 1 + aura / 100;
   if (weather === 'Virus' || weather === 'Manga') value *= 1.25;
+  if (weather === 'Pumpkin Moon') value *= 1.35;
   return Math.max(0, value);
 };
 
@@ -51,6 +52,7 @@ baseBorderMultipliers = function baseBorderMultipliersWithPlayerStatAuraV41(buil
     out.Ruby *= 1.05;
     out.Galaxy *= 1.05;
   }
+  if (weather === 'Pumpkin Moon') for (const name of BN) out[name] *= 1.1;
   for (const name of BN) {
     const aura = playerStatAuraBonusV41(build, name);
     if (aura > 0) out[name] *= 1 + aura / 100;
