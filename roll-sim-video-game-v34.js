@@ -34,6 +34,43 @@
     }
   }
 
+
+  // Halloween 2026, read from the uploaded game's Cards module.
+  // Four Horsemen end Nov 1, while the Halloween3 limited cards end Nov 2.
+  // The five Pumpkin Moon cards are weather-only and do not have an expiry.
+  const halloween = [
+    { name:'Trick or Treater', rarity:16000, collection:'Halloween3', expiresAt:1793660400 },
+    { name:'Neighbor', rarity:50000, collection:'Halloween3', expiresAt:1793660400 },
+    { name:'Tarantula', rarity:200000, collection:'Halloween3', expiresAt:1793660400 },
+    { name:'Ghost', rarity:1000000, collection:'Halloween3', expiresAt:1793660400 },
+    { name:'Crow', rarity:10000000, collection:'Halloween3', expiresAt:1793660400 },
+    { name:'Grey Pumpkin', rarity:25000000, weather:'Shroud', collection:'Halloween3', expiresAt:1793660400 },
+    { name:'The Faceless', rarity:2000000000, collection:'Halloween3', expiresAt:1793660400 },
+    { name:'Pumpkin King', rarity:15000000, weather:'Pumpkin Moon', collection:'Halloween3' },
+    { name:'Freddy Krueger', rarity:5000000, weather:'Pumpkin Moon', collection:'Halloween3' },
+    { name:'Living Gargoyle', rarity:750000, weather:'Pumpkin Moon', collection:'Halloween3' },
+    { name:'Eerie Tree', rarity:125000, weather:'Pumpkin Moon', collection:'Halloween3' },
+    { name:'Living Armor', rarity:400000, weather:'Pumpkin Moon', collection:'Halloween3' },
+    { name:'Pestilence', rarity:1000000000, expiresAt:1793494800 },
+    { name:'Famine', rarity:2000000000, expiresAt:1793494800 },
+    { name:'War', rarity:3000000000, expiresAt:1793494800 },
+    { name:'Death', rarity:4000000000, expiresAt:1793494800 },
+  ];
+  const nowSeconds = Date.now() / 1000;
+  for (const source of halloween) {
+    const card = DATA.cards.find((item) => item.name === source.name);
+    const update = { ...source };
+    if (source.expiresAt) {
+      update.currentEvent = nowSeconds < source.expiresAt && source.collection !== 'Halloween3';
+      if (update.currentEvent) update.eventFactor = 0.5;
+      update.expiredEvent = nowSeconds >= source.expiresAt;
+    }
+    if (card) Object.assign(card, update);
+    else DATA.cards.push(update);
+  }
+  if (!DATA.weathers.includes('Pumpkin Moon')) DATA.weathers.push('Pumpkin Moon');
+  DATA.weatherMults['Pumpkin Moon'] = 2;
+
   for (const card of DATA.cards) if (card.pack === 'Video Game') card.rollRequirement = 25000000;
   DATA.cards.sort((a, b) => (Number(b.rarity) || 0) - (Number(a.rarity) || 0) || String(a.name).localeCompare(String(b.name)));
 })();

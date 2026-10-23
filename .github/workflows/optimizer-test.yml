@@ -2,7 +2,7 @@ name: Optimizer Test
 
 on:
   push:
-    branches: [main, optimizer-test]
+    branches: [main, optimizer-test, halloween-2026-source-audit]
   workflow_dispatch:
 
 permissions:
@@ -32,5 +32,6 @@ jobs:
           node --check roll-sim-parallel-v19.js
           node hit-calc-mutation-selftest.cjs
           node hit-calc-event-cleanup-selftest.cjs
+          node hit-calc-halloween-selftest.cjs
       - name: Validate optimizer patches
         run: node optimizer-v4-selftest.cjs
