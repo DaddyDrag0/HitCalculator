@@ -9,11 +9,20 @@ chaska = function chaskaV38(points, rate) {
   const r = Math.max(0, Number(rate) || 0);
   if (!p || !r) return 0;
 
-  const fullBlocks = Math.floor(p / 50);
-  const remainder = p - fullBlocks * 50;
-  const decay = 0.85;
-  const full = fullBlocks > 0
-    ? 50 * r * (1 - Math.pow(decay, fullBlocks)) / (1 - decay)
-    : 0;
-  return full + remainder * r * Math.pow(decay, fullBlocks);
+  // Expansion GetChaskaBonus: 50-point blocks through 500, 100 to 1000,
+  // 250 to 2000, 500 to 3000, 1000 to 4000, then an undiminished tail
+  // at the final diminished rate. Only 22 finite blocks are needed.
+  const steps = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500,
+    600, 700, 800, 900, 1000, 1250, 1500, 1750, 2000,
+    2500, 3000, 4000];
+  let used = 0, total = 0, multiplier = 1;
+  for (const boundary of steps) {
+    if (used >= p) break;
+    const amount = Math.min(p, boundary) - used;
+    total += amount * r * multiplier;
+    used += amount;
+    if (used >= p) return total;
+    multiplier *= 0.85;
+  }
+  return total + (p - used) * r * multiplier;
 };
