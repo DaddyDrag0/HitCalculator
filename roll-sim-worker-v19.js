@@ -1,4 +1,4 @@
-importScripts('./roll-sim-worker-v16.js?rev=20261003-chaska-breakpoints-1');
+importScripts('./roll-sim-worker-v16.js?rev=20261023-halloween-cache-2');
 
 // Rapture cards are not affected by the Chaos weather structure.
 (() => {
