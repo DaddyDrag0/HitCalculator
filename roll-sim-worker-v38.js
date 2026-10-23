@@ -1,4 +1,4 @@
-importScripts('./roll-sim-worker-v30.js?rev=20260918-mutation-3');
+importScripts('./roll-sim-worker-v30.js?rev=20261023-halloween-cache-2');
 
 // Exact-worker performance guard.
 // Match the game's tiered Chaska diminishing returns using a bounded set of breakpoints.
