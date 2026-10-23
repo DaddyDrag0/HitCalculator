@@ -119,6 +119,7 @@ function mutationEligibleV30(card, weather) {
     && !card.weather
     && !card.boss
     && !card.sin
+    && !card.expiresAt
     && !card.currentEvent
     && !card.expiredEvent
     && card.rollable !== false;
