@@ -35,7 +35,7 @@
         +'</select><b data-relic-value="'+relic.id+'">'+esc(String(value(relic.id))+relic.suffix)+'</b></label>'
       ).join('')+'</div>'
       +'<p class="hit-relic-foot">Quickdraw keeps its −20% Luck, Heavy Hand keeps its −10% Roll Speed and Vicissitudes keeps its −10% negative shift. '
-      +'<a href="https://daddydrag0.github.io/CardRngExpansionDepths/relics.html" target="_blank" rel="noopener">View upgrade costs</a>.</p>';
+      +'<a href="./relics.html" target="_blank" rel="noopener">View upgrade costs</a>.</p>';
     const after=root.querySelector('.uv-workbench');
     if(after)after.insertAdjacentElement('afterend',element);
     else root.append(element);
