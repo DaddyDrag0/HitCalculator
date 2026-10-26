@@ -127,7 +127,7 @@ function relicVicFactorsV43(build,index){
   if(index<0)return [1,1,1,1];
   const state=VIC_STATES[index];
   const bonus=1+relicRollBoostV43(build,'Vicissitudes',[10,15,20,25,30])/100;
-  return BN.map(name=>name===state.plus?bonus:name===state.minus?0.9:1);
+  return BN.map((_,i)=>i===state.plus?bonus:i===state.minus?0.9:1);
 }
 
 function baseLuck(build, weather, surgeActive) {
