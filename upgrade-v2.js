@@ -1,5 +1,6 @@
 (() => {
   const STORAGE_KEY = 'hitCalcUpgradeBuilderV2';
+  const relicValue = (id, fallback) => Number(window.HIT_RELIC_LEVELS?.value?.(id) ?? fallback);
   const BORDER_NAMES = ['Platinum', 'Crystal', 'Ruby', 'Galaxy'];
   const BORDERS = {
     Platinum: { denominator: 100, multiplier: 100 },
@@ -162,12 +163,12 @@
     luck *= structureMultiplier('Luck', structures.Luck);
     luck += chaska(num('uvChaskaLuck'), 0.25);
     if (quickdraw) luck *= 0.8;
-    if (heavyHand) luck *= 1.2;
+    if (heavyHand) luck *= 1 + relicValue('HeavyHand',20) / 100;
     luck *= 1 + playerStatAuraBonus('Luck') / 100;
 
     let rollSpeed = 100 + (charm.Cooldown || 0);
     rollSpeed *= 1 + (skillValues.RollSpeed + skillValues.AllStat) / 100;
-    if (quickdraw) rollSpeed *= 1.1;
+    if (quickdraw) rollSpeed *= 1 + relicValue('Quickdraw',10) / 100;
     if (heavyHand) rollSpeed *= 0.9;
     rollSpeed *= 1 + playerStatAuraBonus('RollSpeed') / 100;
 
@@ -195,6 +196,7 @@
     return {
       rolls, luck, rollSpeed, borderDisplay, borderEffective, cardsPerSecond, timeStorm,
       bossPot: !!$('uvBossPot')?.checked, luckySurge: !!$('uvLuckySurge')?.checked, theDice: !!$('uvDice')?.checked,
+      surgeBoost: relicValue('LuckySurge',25), diceBoost: relicValue('TheDice',100),
     };
   }
 
@@ -216,11 +218,11 @@
     const states = [];
     if (1 - surgeShare > 0) {
       states.push({ multiplier: 1, weight: (1 - surgeShare) * normalShare });
-      if (diceShare > 0) states.push({ multiplier: 2, weight: (1 - surgeShare) * diceShare });
+      if (diceShare > 0) states.push({ multiplier: 1 + stats.diceBoost / 100, weight: (1 - surgeShare) * diceShare });
     }
     if (surgeShare > 0) {
-      states.push({ multiplier: 1.25, weight: surgeShare * normalShare });
-      if (diceShare > 0) states.push({ multiplier: 2.5, weight: surgeShare * diceShare });
+      states.push({ multiplier: 1 + stats.surgeBoost / 100, weight: surgeShare * normalShare });
+      if (diceShare > 0) states.push({ multiplier: (1 + stats.surgeBoost / 100) * (1 + stats.diceBoost / 100), weight: surgeShare * diceShare });
     }
     return states;
   }
