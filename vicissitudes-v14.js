@@ -1,6 +1,16 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const STORAGE = 'hitCalcVicissitudesV14';
+  const relicValue = (id, base) => Number(window.HIT_RELIC_LEVELS?.value?.(id) ?? base);
+  function updateVicStates(){
+    const boost = 1 + relicValue('Vicissitudes',10) / 100;
+    let index=0;
+    for(const plus of BN)for(const minus of BN){
+      if(plus===minus)continue;
+      const row=VIC_STATES[index++];
+      for(const name of BN)row[name]=name===plus?boost:name===minus?0.9:1;
+    }
+  }
   const BN = ['Platinum', 'Crystal', 'Ruby', 'Galaxy'];
   const B = {
     Platinum: { d: 100, m: 100 },
@@ -95,6 +105,7 @@
   }
 
   function stats() {
+    updateVicStates();
     const rolls = Math.max(0, Math.floor(num('uvRolls')));
     const charm = CH[$('uvCharm')?.value] || {};
     const s = {
@@ -126,14 +137,14 @@
     luck += dungeonBonus('Luck');
     luck += chaska(num('uvChaskaLuck'), 0.25);
     if (on('uvQuickdraw')) luck *= 0.8;
-    if (on('uvHeavyHand')) luck *= 1.2;
+    if (on('uvHeavyHand')) luck *= 1 + relicValue('HeavyHand',20) / 100;
     luck *= 1 + auraBonus('Luck') / 100;
 
     let speed = 100 + (on('uvPotSpeed3') ? 300 : 0) + (on('uvPotLegendarySpeed') ? 500 : 0) + (charm.Cooldown || 0);
     speed *= 1 + (s.RollSpeed + s.AllStat) / 100;
     if (on('uvPotEventSpeed')) speed *= 1.25;
     speed += dungeonBonus('Speed');
-    if (on('uvQuickdraw')) speed *= 1.1;
+    if (on('uvQuickdraw')) speed *= 1 + relicValue('Quickdraw',10) / 100;
     if (on('uvHeavyHand')) speed *= 0.9;
     speed *= 1 + auraBonus('RollSpeed') / 100;
 
@@ -164,6 +175,8 @@
       boss: on('uvBossPot'),
       surge: on('uvLuckySurge'),
       dice: on('uvDice'),
+      surgeBoost: relicValue('LuckySurge',25),
+      diceBoost: relicValue('TheDice',100),
     };
   }
 
@@ -218,11 +231,11 @@
     const states = [];
     if (1 - surge > 0) {
       states.push([1, (1 - surge) * normal]);
-      if (dice) states.push([2, (1 - surge) * dice]);
+      if (dice) states.push([1 + s.diceBoost / 100, (1 - surge) * dice]);
     }
     if (surge) {
-      states.push([1.25, surge * normal]);
-      if (dice) states.push([2.5, surge * dice]);
+      states.push([1 + s.surgeBoost / 100, surge * normal]);
+      if (dice) states.push([(1 + s.surgeBoost / 100) * (1 + s.diceBoost / 100), surge * dice]);
     }
     return states;
   }
