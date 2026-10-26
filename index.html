@@ -16,7 +16,7 @@
     }
   } catch {}
   (async()=>{
-    const version='20261023-halloween-audit-1';
+    const version='20261026-relic-upgrades-v1';
     try{
       const response=await fetch(`./index-base.html?rev=${version}`,{cache:'no-store'});
       if(!response.ok)throw new Error(`HTTP ${response.status}`);

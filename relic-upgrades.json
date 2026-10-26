@@ -1,0 +1,278 @@
+{
+  "source": "HORSEMAN Card RNG Expansion.rbxl — ReplicatedStorage/Modules/Relics/RelicUpgrades + Definitions",
+  "grades": [
+    "Base",
+    "Platinum",
+    "Crystal",
+    "Ruby",
+    "Galaxy"
+  ],
+  "maxLevel": 4,
+  "relics": [
+    {
+      "key": "ChronoShard",
+      "name": "Chrono Shard",
+      "stat": "BattleSpeed",
+      "values": [
+        1,
+        1.25,
+        1.5,
+        1.75,
+        2
+      ],
+      "description": "Battle Speed",
+      "unit": "+",
+      "recipes": [
+        {
+          "Speed Potion III": 25,
+          "Structure Coin": 15
+        },
+        {
+          "Legendary Speed Potion": 50,
+          "Divine Potion": 25
+        },
+        {
+          "Legendary Speed Potion": 100,
+          "Gold Structure Coin": 5
+        },
+        {
+          "Divine Potion": 50,
+          "Gold Structure Coin": 20
+        }
+      ]
+    },
+    {
+      "key": "BountifulDelve",
+      "name": "Bountiful Delve",
+      "stat": "RareLootBonus",
+      "values": [
+        25,
+        30,
+        35,
+        40,
+        50
+      ],
+      "description": "Depths rare loot odds",
+      "unit": "%",
+      "recipes": [
+        {
+          "Jackpot Potion": 150,
+          "Rare Weather Potion": 10,
+          "Weather Token": 2
+        },
+        {
+          "Jackpot Potion": 250,
+          "Rare Weather Potion": 15,
+          "Weather Token": 5
+        },
+        {
+          "Jackpot Potion": 500,
+          "Rare Weather Potion": 25,
+          "Weather Token": 10
+        },
+        {
+          "Jackpot Potion": 1000,
+          "Rare Weather Potion": 50,
+          "Weather Token": 20
+        }
+      ]
+    },
+    {
+      "key": "LuckySurge",
+      "name": "Lucky Surge",
+      "stat": "ProcBoost",
+      "values": [
+        25,
+        30,
+        35,
+        40,
+        50
+      ],
+      "description": "Luck on 1% proc (10s / 30s cooldown)",
+      "unit": "%",
+      "recipes": [
+        {
+          "Luck Potion III": 250,
+          "Fortune Potion": 5000
+        },
+        {
+          "Legendary Luck Potion": 55,
+          "Elixir": 250
+        },
+        {
+          "Divine Potion": 25,
+          "Legendary Luck Potion": 120
+        },
+        {
+          "Divine Potion": 75,
+          "Jackpot Potion": 750
+        }
+      ]
+    },
+    {
+      "key": "TheDice",
+      "name": "The Dice",
+      "stat": "NthRollBoost",
+      "values": [
+        100,
+        125,
+        175,
+        225,
+        300
+      ],
+      "description": "Extra luck every 25th roll",
+      "unit": "%",
+      "recipes": [
+        {
+          "Fortune Potion": 1500,
+          "Structure Coin": 250
+        },
+        {
+          "Jackpot Potion": 100,
+          "Elixir": 135
+        },
+        {
+          "Windfall Potion": 900,
+          "Gold Structure Coin": 5
+        },
+        {
+          "Jackpot Potion": 700,
+          "Gold Structure Coin": 25
+        }
+      ]
+    },
+    {
+      "key": "PotionMaster",
+      "name": "Potion Master",
+      "stat": "PotionDurationBonus",
+      "values": [
+        50,
+        60,
+        70,
+        80,
+        100
+      ],
+      "description": "Potion duration (select potions)",
+      "unit": "%",
+      "recipes": [
+        {
+          "Luck Potion III": 1500,
+          "Speed Potion III": 1500
+        },
+        {
+          "Legendary Luck Potion": 200,
+          "Legendary Speed Potion": 200
+        },
+        {
+          "Divine Potion": 50,
+          "Mutation Potion": 20
+        },
+        {
+          "Divine Potion": 225,
+          "Mutation Potion": 125,
+          "Gold Structure Coin": 50
+        }
+      ]
+    },
+    {
+      "key": "Vicissitudes",
+      "name": "Vicissitudes",
+      "stat": "PositiveBorderBoost",
+      "values": [
+        10,
+        15,
+        20,
+        25,
+        30
+      ],
+      "description": "Positive border odds every 60s (negative stays −10%)",
+      "unit": "%",
+      "recipes": [
+        {
+          "Cursed Potion": 400,
+          "Fortune Potion": 1000
+        },
+        {
+          "Windfall Potion": 150,
+          "Rare Weather Potion": 3
+        },
+        {
+          "Jackpot Potion": 350,
+          "Weather Token": 5
+        },
+        {
+          "Rare Weather Potion": 30,
+          "Weather Token": 25
+        }
+      ]
+    },
+    {
+      "key": "Quickdraw",
+      "name": "Quickdraw",
+      "stat": "RollSpeedBonus",
+      "values": [
+        10,
+        15,
+        20,
+        25,
+        30
+      ],
+      "description": "Roll speed (luck penalty stays −20%)",
+      "unit": "%",
+      "recipes": [
+        {
+          "Speed Potion II": 500,
+          "Structure Coin": 100
+        },
+        {
+          "Speed Potion III": 750,
+          "Legendary Speed Potion": 100
+        },
+        {
+          "Legendary Speed Potion": 150,
+          "Gold Structure Coin": 5
+        },
+        {
+          "Gold Structure Coin": 15,
+          "Legendary Speed Potion": 300
+        }
+      ]
+    },
+    {
+      "key": "HeavyHand",
+      "name": "Heavy Hand",
+      "stat": "LuckBonus",
+      "values": [
+        20,
+        25,
+        30,
+        35,
+        40
+      ],
+      "description": "Luck (roll speed penalty stays −10%)",
+      "unit": "%",
+      "recipes": [
+        {
+          "Luck Potion II": 500,
+          "Cursed Potion": 150,
+          "Elixir": 50
+        },
+        {
+          "Luck Potion III": 750,
+          "Legendary Luck Potion": 50,
+          "Elixir": 100
+        },
+        {
+          "Legendary Luck Potion": 90,
+          "Cursed Potion": 500,
+          "Elixir": 200
+        },
+        {
+          "Divine Potion": 25,
+          "Gold Structure Coin": 10,
+          "Elixir": 300
+        }
+      ]
+    }
+  ]
+}

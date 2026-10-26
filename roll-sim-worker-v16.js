@@ -104,6 +104,16 @@ function dungeonBonus(build, name) {
   return clampLevel(build.dungeon?.[name], 25) * per;
 }
 
+function relicRollBoostV43(build,name,values) {
+  const level=Math.max(0,Math.min(4,Math.floor(Number(build?.modifiers?.relicLevels?.[name])||0)));
+  return values[level];
+}
+function relicVicFactorsV43(build,index){
+  if(index<0)return [1,1,1,1];
+  const state=VIC_STATES[index];
+  const bonus=1+relicRollBoostV43(build,'Vicissitudes',[10,15,20,25,30])/100;
+  return BN.map((_,i)=>i===state.plus?bonus:i===state.minus?0.9:1);
+}
 function baseLuck(build, weather, surgeActive) {
   const charm = CHARMS[build.charm] || {};
   let luck = 1 + Math.floor(Math.max(0, Number(build.rolls) || 0) / 1e6) * 0.1 + (charm.Luck || 0);
@@ -118,7 +128,8 @@ function baseLuck(build, weather, surgeActive) {
   luck += dungeonBonus(build, 'Luck');
   luck += chaska(build.chaska?.Luck, 0.25);
   if (build.modifiers?.quickdraw) luck *= 0.8;
-  const additivePercent = (build.modifiers?.heavyHand ? 20 : 0) + (surgeActive ? 25 : 0);
+  const additivePercent = (build.modifiers?.heavyHand ? relicRollBoostV43(build,'HeavyHand',[20,25,30,35,40]) : 0)
+    + (surgeActive ? relicRollBoostV43(build,'LuckySurge',[25,30,35,40,50]) : 0);
   if (additivePercent) luck *= 1 + additivePercent / 100;
   return Math.max(0, luck);
 }
@@ -128,7 +139,7 @@ function rollsPerSecond(build, weather) {
   speed *= 1 + (skill(build, 'Speed') + skill(build, 'All')) / 100;
   if (build.potions?.eventSpeed) speed *= 1.25;
   speed += dungeonBonus(build, 'Speed');
-  if (build.modifiers?.quickdraw) speed *= 1.1;
+  if (build.modifiers?.quickdraw) speed *= 1+relicRollBoostV43(build,'Quickdraw',[10,15,20,25,30])/100;
   if (build.modifiers?.heavyHand) speed *= 0.9;
   return Math.max(0, (speed / 100) * structureMultiplier('Speed', clampLevel(build.structures?.Speed, 8)) * (weather === 'Time Storm' ? 2 : 1));
 }
@@ -149,7 +160,7 @@ function baseBorderMultipliers(build, weather) {
 }
 function borderProbabilities(build, weather, vicIndex) {
   const multipliers = baseBorderMultipliers(build, weather);
-  const factors = vicIndex >= 0 ? VIC_STATES[vicIndex].factors : [1, 1, 1, 1];
+  const factors = relicVicFactorsV43(build,vicIndex);
   const rates = BN.map((name, i) => Math.min(1, Math.max(0, multipliers[name] * factors[i] / DATA.borders[name].denominator)));
   const probs = new Float64Array(MASK_COUNT);
   for (let mask = 0; mask < MASK_COUNT; mask += 1) {
@@ -180,7 +191,8 @@ function adjustedCardRarity(card, build, weather, weatherStructures) {
   return Math.max(1e-12, rarity);
 }
 function makeCardDistribution(build, weather, surgeActive, diceActive, weatherStructures) {
-  const luck = baseLuck(build, weather, surgeActive) * (diceActive ? 2 : 1);
+  const luck = baseLuck(build, weather, surgeActive) * (diceActive
+    ? 1+relicRollBoostV43(build,'TheDice',[100,125,175,225,300])/100 : 1);
   const probabilities = new Float64Array(CARDS.length);
   let remaining = 1;
   let fallback = -1;

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111820">
+  <title>Relic Upgrades · Card RNG Expansion</title>
+  <meta name="description" content="Plan all eight Card RNG Expansion relic upgrades and see the exact materials from the game files.">
+  <link rel="stylesheet" href="./relic-planner.css?v=20261026-1">
+  <script src="./relic-planner.js?v=20261026-1" defer></script>
+</head>
+<body>
+ <main class="relic-shell" id="relicRoot">
+  <header class="relic-topbar">
+   <div><span class="relic-eyebrow">CARD RNG EXPANSION</span><h1>Relic Upgrades</h1><p>Choose your current and target levels to calculate the materials you need.</p></div>
+   <a class="relic-home" href="./index.html">Back to Hit Calc</a>
+  </header>
+  <div class="relic-summary-bar">
+    <div><small>Relics</small><strong>8</strong></div>
+    <div><small>Upgrade steps</small><strong id="relicSteps">0</strong></div>
+    <div><small>Materials required</small><strong id="relicItemCount">0</strong></div>
+    <div class="relic-toolbar"><button id="relicMaxAll">Target Galaxy for all</button><button id="relicResetAll">Reset targets</button></div>
+  </div>
+  <section id="relicCards" class="relic-grid" aria-label="Relic upgrades"><p class="relic-muted">Loading relic data…</p></section>
+  <section class="relic-material-panel">
+    <div class="relic-section-head"><div><h2>Materials</h2><p>Total cost to upgrade from your selected current levels to your targets.</p></div><button id="relicCopy">Copy shopping list</button></div>
+    <div id="relicMaterials" class="relic-materials"><p class="relic-muted">Select a target above.</p></div>
+  </section>
+  <p class="relic-footnote">Based on the game's HORSEMAN RelicUpgrades and Definitions modules. Levels are saved in your browser only. This planner doesn't change your Roblox inventory or automatically apply relic levels to the simulators.</p>
+ </main>
+</body>
+</html>

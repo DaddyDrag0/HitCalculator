@@ -124,7 +124,7 @@ function mutationEligibleV30(card, weather) {
 
 function borderRatesV30(build, weather, vicIndex) {
   const multipliers = baseBorderMultipliers(build, weather);
-  const factors = vicIndex >= 0 ? VIC_STATES[vicIndex].factors : [1, 1, 1, 1];
+  const factors = relicVicFactorsV43(build,vicIndex);
   return BN.map((name, index) => Math.min(1, Math.max(0,
     multipliers[name] * factors[index] / DATA.borders[name].denominator
   )));

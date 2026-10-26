@@ -369,16 +369,18 @@
         ? Math.min(1, 10 / (30 + (100 / rps)))
         : 0;
       const diceShare = theDice.checked ? 1 / 25 : 0;
+      const surgeFactor = 1 + (Number(window.HIT_RELIC_LEVELS?.value?.('LuckySurge') ?? 25) / 100);
+      const diceFactor = 1 + (Number(window.HIT_RELIC_LEVELS?.value?.('TheDice') ?? 100) / 100);
       const normalShare = 1 - diceShare;
       const states = [];
 
       if (1 - surgeShare > 0) {
         states.push({ multiplier: 1, weight: (1 - surgeShare) * normalShare });
-        if (diceShare > 0) states.push({ multiplier: 2, weight: (1 - surgeShare) * diceShare });
+        if (diceShare > 0) states.push({ multiplier: diceFactor, weight: (1 - surgeShare) * diceShare });
       }
       if (surgeShare > 0) {
-        states.push({ multiplier: 1.25, weight: surgeShare * normalShare });
-        if (diceShare > 0) states.push({ multiplier: 2.5, weight: surgeShare * diceShare });
+        states.push({ multiplier: surgeFactor, weight: surgeShare * normalShare });
+        if (diceShare > 0) states.push({ multiplier: surgeFactor * diceFactor, weight: surgeShare * diceShare });
       }
 
       return states;

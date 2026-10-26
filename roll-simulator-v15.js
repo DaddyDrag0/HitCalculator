@@ -120,6 +120,7 @@
       modifiers: {
         borderBoost: checked('uvBorderBoost'), bossPot: checked('uvBossPot'), luckySurge: checked('uvLuckySurge'),
         dice: checked('uvDice'), quickdraw: checked('uvQuickdraw'), heavyHand: checked('uvHeavyHand'), vicissitudes: checked('uvVicissitudes'),
+        relicLevels: window.HIT_RELIC_LEVELS?.levels?.() || {},
       },
       playerStatAura: {
         name: $('playerStatAura')?.value || '',
