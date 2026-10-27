@@ -33,7 +33,7 @@
   }
 
   const num = (id, fallback = 0) => {
-    const value = Number($(id)?.value);
+    const value = id==='uvCardRarity' && window.HIT_CALC_PARSE_RARITY ? window.HIT_CALC_PARSE_RARITY($(id)?.value) : Number($(id)?.value);
     return Number.isFinite(value) ? value : fallback;
   };
   const on = (id) => !!$(id)?.checked;
@@ -119,14 +119,14 @@
     luck += lvl('uvDungeonLuck', 25) * D.Luck;
     luck += chaska(num('uvChaskaLuck'), .25);
     if (on('uvQuickdraw')) luck *= .8;
-    if (on('uvHeavyHand')) luck *= 1.2;
+    if (on('uvHeavyHand')) luck *= 1 + (Number(window.HIT_RELIC_LEVELS?.value?.('HeavyHand')) || 20)/100;
     luck *= 1 + auraBonus('Luck') / 100;
 
     let speed = 100 + (on('uvPotSpeed3') ? 300 : 0) + (on('uvPotLegendarySpeed') ? 500 : 0) + (charm.Cooldown || 0);
     speed *= 1 + (s.RollSpeed + s.AllStat) / 100;
     if (on('uvPotEventSpeed')) speed *= 1.25;
     speed += lvl('uvDungeonSpeed', 25) * D.Speed;
-    if (on('uvQuickdraw')) speed *= 1.1;
+    if (on('uvQuickdraw')) speed *= 1 + (Number(window.HIT_RELIC_LEVELS?.value?.('Quickdraw')) || 10)/100;
     if (on('uvHeavyHand')) speed *= .9;
     speed *= 1 + auraBonus('RollSpeed') / 100;
 
@@ -174,7 +174,9 @@
   }
 
   function factorStates(s) {
-    return s.vic ? VIC : [NEUTRAL];
+    if (!s.vic) return [NEUTRAL];
+    const positive=1+(Number(window.HIT_RELIC_LEVELS?.value?.('Vicissitudes'))||10)/100;
+    return VIC.map(factors=>Object.fromEntries(BN.map(name=>[name,factors[name]>1?positive:factors[name]])));
   }
   function borderRate(name, s, factors) {
     return Math.min(1, Math.max(0, s.be[name] * (factors?.[name] ?? 1) / B[name].d));
@@ -236,14 +238,16 @@
     const surge = s.surge && s.cps > 0 ? Math.min(1, 10 / (30 + 100 / s.cps)) : 0;
     const dice = s.dice ? 1 / 25 : 0;
     const normal = 1 - dice;
+    const surgeFactor=1+(Number(window.HIT_RELIC_LEVELS?.value?.('LuckySurge'))||25)/100;
+    const diceFactor=1+(Number(window.HIT_RELIC_LEVELS?.value?.('TheDice'))||100)/100;
     const out = [];
     if (1 - surge > 0) {
       out.push([1, (1 - surge) * normal]);
-      if (dice) out.push([2, (1 - surge) * dice]);
+      if (dice) out.push([diceFactor, (1 - surge) * dice]);
     }
     if (surge) {
-      out.push([1.25, surge * normal]);
-      if (dice) out.push([2.5, surge * dice]);
+      out.push([surgeFactor, surge * normal]);
+      if (dice) out.push([surgeFactor*diceFactor, surge * dice]);
     }
     return out;
   }
@@ -408,6 +412,7 @@
     root.addEventListener('input', schedule);
     root.addEventListener('change', schedule);
     root.addEventListener('click', schedule);
+    document.addEventListener('hitcalc-relic-tier-change', schedule);
     document.addEventListener('change', (event) => {
       if (event.target.closest?.('[data-rs-pack],[data-rs-rapture24]')) burst();
     });
