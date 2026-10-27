@@ -332,7 +332,8 @@
           crystalLuck: $("crystalLuck").value,
           rubyLuck: $("rubyLuck").value,
           galaxyLuck: $("galaxyLuck").value,
-          cardRarity: els.cardRarity.value
+          cardRarity: els.cardRarity.value,
+          goalBorders: [...selected]
         }));
         localStorage.removeItem(OLD_STORAGE_KEY);
       } catch {}
