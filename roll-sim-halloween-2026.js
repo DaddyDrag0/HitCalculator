@@ -1,5 +1,5 @@
 // Sourced from the supplied Halloween 2026 game place (Cards + RNG + Util).
-// Halloween3 is a Collection, not a gated Pack. Seven event cards expire
+// Halloween3 is a Collection, not a gated Pack. Eight event cards expire
 // on 2026-11-02 23:00 UTC; the five Pumpkin Moon cards have no expiry.
 (() => {
   const DATA = globalThis.ROLL_SIM_DATA_V16;
@@ -35,6 +35,13 @@
     "rarity": 10000000,
     "collection": "Halloween3",
     "imageAssetId": 89152352554935
+  },
+  {
+    "name": "Witch Doctor",
+    "rarity": 5000000,
+    "weather": "Virus",
+    "collection": "Halloween3",
+    "imageAssetId": 93905437526332
   },
   {
     "name": "Grey Pumpkin",
@@ -88,7 +95,7 @@
   const byName = new Set(DATA.cards.map(c => c.name));
   for (let i = 0; i < halloween.length; i++) {
     const card = halloween[i];
-    if (i < 7 && Date.now() >= end) continue;
+    if (i < 8 && Date.now() >= end) continue;
     if (byName.has(card.name)) continue;
     DATA.cards.push({ ...card });
     byName.add(card.name);
