@@ -79,10 +79,19 @@
   const SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
 
   const state = { mode: 'stats', borders: new Set(['Platinum']) };
+  const rarityPowers = {K:3,M:6,B:9,T:12,QA:15,QI:18,SX:21,SP:24,OC:27,NO:30,DC:33};
+  const parseRarity = raw => {
+    const value = String(raw ?? '').replace(/,/g,'').trim();
+    const match = value.match(/^([0-9]*\.?[0-9]+)\s*([a-z]{1,2})$/i);
+    if (match && rarityPowers[match[2].toUpperCase()] !== undefined)
+      return Number(match[1]) * 10 ** rarityPowers[match[2].toUpperCase()];
+    return Number(value);
+  };
+  window.HIT_CALC_PARSE_RARITY = parseRarity;
   const $ = (id) => document.getElementById(id);
 
   function num(id, fallback = 0) {
-    const value = Number($(id)?.value);
+    const value = id === 'uvCardRarity' ? parseRarity($(id)?.value) : Number($(id)?.value);
     return Number.isFinite(value) ? value : fallback;
   }
   function level(id, max) { return Math.max(0, Math.min(max, Math.floor(num(id, 0)))); }
@@ -368,7 +377,7 @@
         </div>
         <div class="uv-stack">
           <article class="uv-panel"><div class="uv-panel-title"><span>05</span><strong>Modifiers</strong></div><div class="uv-toggle-grid">${toggle('1.5× Border', 'uvBorderBoost')}${toggle('Time Storm', 'uvTimeStorm')}${toggle('Boss Pot', 'uvBossPot')}${toggle('Lucky Surge', 'uvLuckySurge')}${toggle('The Dice', 'uvDice')}${toggle('Quickdraw', 'uvQuickdraw')}${toggle('Heavy Hand', 'uvHeavyHand')}</div></article>
-          <article class="uv-panel uv-target-panel"><div class="uv-panel-title"><span>06</span><strong>Targets</strong></div><div class="uv-target-label">Borders</div><div class="uv-border-buttons">${BORDER_NAMES.map((name) => `<button type="button" data-border="${name}" class="uv-border ${name.toLowerCase()}${name === 'Platinum' ? ' active' : ''}">${name}</button>`).join('')}</div><label class="uv-target-rarity"><span>Minimum Card Rarity</span><input id="uvCardRarity" type="number" min="1" step="any" value="1000000"></label></article>
+          <article class="uv-panel uv-target-panel"><div class="uv-panel-title"><span>06</span><strong>Targets</strong></div><div class="uv-target-label">Borders</div><div class="uv-border-buttons">${BORDER_NAMES.map((name) => `<button type="button" data-border="${name}" class="uv-border ${name.toLowerCase()}${name === 'Platinum' ? ' active' : ''}">${name}</button>`).join('')}</div><label class="uv-target-rarity"><span>Minimum Card Rarity</span><input id="uvCardRarity" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="1M, 25B, 2Qa" value="1M"></label></article>
         </div>
       </section>
       <section class="uv-results-row">
@@ -476,13 +485,7 @@
     $('uvOutCrystal').textContent = `${formatNumber(stats.borderDisplay.Crystal, 2)}×`;
     $('uvOutRuby').textContent = `${formatNumber(stats.borderDisplay.Ruby, 2)}×`;
     $('uvOutGalaxy').textContent = `${formatNumber(stats.borderDisplay.Galaxy, 2)}×`;
-    $('uvBorderRolls').textContent = formatNumber(borderPerf.rolls);
-    $('uvBorderTime').textContent = formatTime(borderPerf.time);
     $('uvCardLabel').textContent = formatNumber(target);
-    $('uvCardRolls').textContent = formatNumber(cardPerf.rolls);
-    $('uvCardTime').textContent = formatTime(cardPerf.time);
-    $('uvCardsSecond').textContent = formatNumber(stats.cardsPerSecond, 2);
-    $('uvRollsHour').textContent = formatNumber(stats.cardsPerSecond * 3600);
 
     const earned = Math.floor(stats.rolls / 50000);
     const used = Math.max(0, Math.floor(num('uvChaskaLuck'))) + Math.max(0, Math.floor(num('uvChaskaPlatinum'))) + Math.max(0, Math.floor(num('uvChaskaCrystal'))) + Math.max(0, Math.floor(num('uvChaskaGalaxy')));
@@ -493,10 +496,6 @@
     const seconds = Math.max(0, num('uvTimeValue', 1)) * TIME_UNITS[$('uvTimeUnit').value];
     const totalRolls = Math.max(0, Math.floor(seconds * stats.cardsPerSecond));
     $('uvTimeRolls').textContent = formatNumber(totalRolls);
-    const borderGrid = $('uvBorderChanceGrid'); borderGrid.replaceChildren();
-    for (const combo of allBorderCombinations(stats)) borderGrid.append(chanceItem(combo.names, formatSpan(combo.rate * totalRolls)));
-    const cardGrid = $('uvCardChanceGrid'); cardGrid.replaceChildren();
-    for (const threshold of THRESHOLDS) cardGrid.append(chanceItem(`≥ ${formatNumber(threshold)}`, formatSpan(thresholdRate(threshold, stats, distribution, outcomes) * totalRolls), true));
     save();
   }
 
@@ -508,6 +507,6 @@
     $('resetBtn')?.addEventListener('click', (event) => { if (state.mode !== 'upgrades') return; event.preventDefault(); event.stopImmediatePropagation(); resetBuilder(); }, true);
   }
 
-  function init() { injectStyles(); buildUI(); setupRelicTierInputs(); load(); bind(); render(); setMode('stats'); }
+  function init() { injectStyles(); buildUI(); setupRelicTierInputs(); load(); const rarity=$('uvCardRarity'); if(rarity){rarity.value=formatNumber(Math.max(1,num('uvCardRarity',1e6)));rarity.addEventListener('blur',()=>{rarity.value=formatNumber(Math.max(1,num('uvCardRarity',1e6)));render();});} bind(); render(); setMode('stats'); }
   if (document.readyState === 'complete') init(); else window.addEventListener('load', init, { once: true });
 })();
