@@ -442,7 +442,8 @@
     requestAnimationFrame(() => requestAnimationFrame(() => {
       queued = false;
       fixAllStatDisplay();
-      renderVicissitudes();
+      // Shared target renderer handles Vicissitudes odds, preventing competing result updates.
+      window.__hitCalcFinalTargetsV27?.();
       save();
     }));
   }
