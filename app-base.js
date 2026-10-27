@@ -43,12 +43,14 @@ const els = {
 };
 
 const selected = new Set(["Platinum"]);
+const raritySuffixes = {k:1e3,m:1e6,b:1e9,t:1e12,qa:1e15,qi:1e18,sx:1e21,sp:1e24,oc:1e27,no:1e30,dc:1e33};
 
 function loadSavedStats() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(OLD_STORAGE_KEY);
     if (!raw) return;
     const saved = JSON.parse(raw);
+    if (Array.isArray(saved.goalBorders)) { selected.clear(); for (const name of saved.goalBorders) if (BORDERS[name]) selected.add(name); }
     for (const id of ["luck", "rollSpeed", "speedStructure", "platinumLuck", "crystalLuck", "rubyLuck", "galaxyLuck", "cardRarity"]) {
       if (saved[id] !== undefined && saved[id] !== null) $(id).value = String(saved[id]);
     }
@@ -74,13 +76,16 @@ function saveStats() {
       rubyLuck: $("rubyLuck").value,
       galaxyLuck: $("galaxyLuck").value,
       cardRarity: els.cardRarity.value,
+      goalBorders: [...selected],
     }));
     localStorage.removeItem(OLD_STORAGE_KEY);
   } catch {}
 }
 
 function readNumber(input, fallback = 0, min = -Infinity) {
-  const value = Number(input.value);
+  const raw = String(input.value).trim().replace(/,/g, "");
+  const match = input.id === "cardRarity" ? raw.match(/^([0-9]*\.?[0-9]+)\s*([a-z]+)$/i) : null;
+  const value = match ? Number(match[1]) * (raritySuffixes[match[2].toLowerCase()] ?? NaN) : Number(raw);
   return Number.isFinite(value) ? Math.max(min, value) : fallback;
 }
 
@@ -401,6 +406,7 @@ document.querySelectorAll(".border-tab").forEach((button) => {
   button.addEventListener("click", () => {
     const name = button.dataset.border;
     if (selected.has(name)) selected.delete(name); else selected.add(name);
+    saveStats();
     render();
   });
 });
