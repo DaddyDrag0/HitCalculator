@@ -24,6 +24,31 @@
       `  function borderOutcomes(stats) {\n    const multipliers=Array(16).fill(1);\n    for (let mask=0;mask<16;mask+=1) for (let i=0;i<4;i+=1) if (mask&(1<<i)) multipliers[mask]*=BORDERS[BORDER_NAMES[i]].multiplier;\n    const states=[];\n    if (stats.vicissitudes) {\n      for (let plus=0;plus<4;plus+=1) for (let minus=0;minus<4;minus+=1) if (plus!==minus) states.push({plus,minus,weight:1/12});\n    } else states.push({plus:-1,minus:-1,weight:1});\n    const probabilities=Array(16).fill(0);\n    for (const state of states) {\n      for (let mask=0;mask<16;mask+=1) {\n        let p=1;\n        for (let i=0;i<4;i+=1) {\n          const name=BORDER_NAMES[i];\n          let rate=borderRate(name,stats);\n          if (i===state.plus) rate=Math.min(1,rate*1.1);\n          if (i===state.minus) rate=Math.max(0,rate*0.9);\n          p*=mask&(1<<i)?rate:1-rate;\n        }\n        probabilities[mask]+=p*state.weight;\n      }\n    }\n    return probabilities.map((p,mask)=>({mask,p,m:multipliers[mask]})).filter((o)=>o.p>0);\n  }\n`,
       'Vicissitudes border outcomes');
 
+    source = replaceRequired(source,
+      "    if (context.heavyHand) luck *= 1.2;",
+      "    if (context.heavyHand) luck *= 1 + (Number(window.HIT_RELIC_LEVELS?.value?.('HeavyHand')) || 20)/100;",
+      'heavy hand upgrade level');
+    source = replaceRequired(source,
+      "    if (context.quickdraw) speed *= 1.1;",
+      "    if (context.quickdraw) speed *= 1 + (Number(window.HIT_RELIC_LEVELS?.value?.('Quickdraw')) || 10)/100;",
+      'quickdraw upgrade level');
+    source = replaceRequired(source,
+      "if (i===state.plus) rate=Math.min(1,rate*1.1);",
+      "if (i===state.plus) rate=Math.min(1,rate*(1+(Number(window.HIT_RELIC_LEVELS?.value?.('Vicissitudes')) || 10)/100));",
+      'vicissitudes upgrade level');
+    source = replaceRequired(source,
+      "    const dice=stats.dice?1/25:0, normal=1-dice, states=[];",
+      "    const dice=stats.dice?1/25:0, normal=1-dice, states=[];\n    const surgeMultiplier=1+(Number(window.HIT_RELIC_LEVELS?.value?.('LuckySurge')) || 25)/100;\n    const diceMultiplier=1+(Number(window.HIT_RELIC_LEVELS?.value?.('TheDice')) || 100)/100;",
+      'relic proc multipliers');
+    source = replaceRequired(source,
+      "if (dice) states.push([2,(1-surge)*dice]);",
+      "if (dice) states.push([diceMultiplier,(1-surge)*dice]);",
+      'dice boost');
+    source = replaceRequired(source,
+      "states.push([1.25,surge*normal]); if (dice) states.push([2.5,surge*dice]);",
+      "states.push([surgeMultiplier,surge*normal]); if (dice) states.push([surgeMultiplier*diceMultiplier,surge*dice]);",
+      'surge boost');
+
     source = replaceSection(source,
       "  function optimizerSettings() {",
       "  function scoreFor(stats,settings)",
