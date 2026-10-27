@@ -1,6 +1,38 @@
 (() => {
   const STORAGE_KEY = 'hitCalcUpgradeBuilderV2';
+  const relicTiers = { LuckySurge:[25,30,35,40,50], TheDice:[100,125,175,225,300], Quickdraw:[10,15,20,25,30], HeavyHand:[20,25,30,35,40], Vicissitudes:[10,15,20,25,30] };
+  const relicGrades = ['Base','Platinum','Crystal','Ruby','Galaxy'];
+  const relicStorage = 'hitcalc-relic-modifier-tiers-v1';
+  let savedRelicTiers = {};
+  try { savedRelicTiers = JSON.parse(localStorage.getItem(relicStorage)||'{}') || {}; } catch {}
+  const relicLevel = id => Math.max(0,Math.min(4,Number(document.getElementById('uvRelicTier'+id)?.value ?? savedRelicTiers[id] ?? 0) || 0));
+  window.HIT_RELIC_LEVELS = {
+    level: relicLevel,
+    value: id => relicTiers[id]?.[relicLevel(id)],
+    levels: () => Object.fromEntries(Object.keys(relicTiers).map(id=>[id,relicLevel(id)])),
+    grades: relicGrades
+  };
   const relicValue = (id, fallback) => Number(window.HIT_RELIC_LEVELS?.value?.(id) ?? fallback);
+  const relicTierControl = id => '<select class="uv-relic-tier" id="uvRelicTier'+id+'" aria-label="'+id+' relic grade">'+relicGrades.map((grade,i)=>'<option value="'+i+'"'+(relicLevel(id)===i?' selected':'')+'>'+grade+'</option>').join('')+'</select>';
+  function setupRelicTierInputs(){
+    const choices = [['uvLuckySurge','LuckySurge'],['uvDice','TheDice'],['uvQuickdraw','Quickdraw'],['uvHeavyHand','HeavyHand']];
+    for(const [checkboxId,id] of choices){
+      const toggleEl=document.getElementById(checkboxId)?.closest('.uv-toggle');
+      if(!toggleEl || document.getElementById('uvRelicTier'+id))continue;
+      const group=document.createElement('div'); group.className='uv-relic-modifier';
+      toggleEl.parentNode.insertBefore(group,toggleEl);
+      group.appendChild(toggleEl);
+      group.insertAdjacentHTML('beforeend',relicTierControl(id));
+    }
+    const style=document.createElement('style');
+    style.textContent='.uv-relic-modifier{min-width:0;display:grid;gap:4px}.uv-relic-tier{width:100%;min-width:0;border:1px solid var(--line);border-radius:7px;background:var(--panel-2);color:var(--text,#dce4ef);padding:5px;font-size:.72rem;font-weight:700}.uv-relic-tier:focus-visible{outline:2px solid #79a7ec}';
+    document.head.appendChild(style);
+    document.querySelectorAll('.uv-relic-tier').forEach(el=>el.addEventListener('change',()=>{
+      savedRelicTiers[el.id.replace('uvRelicTier','')]=Number(el.value);
+      try{localStorage.setItem(relicStorage,JSON.stringify(savedRelicTiers));}catch{}
+      render();
+    }));
+  }
   const BORDER_NAMES = ['Platinum', 'Crystal', 'Ruby', 'Galaxy'];
   const BORDERS = {
     Platinum: { denominator: 100, multiplier: 100 },
@@ -476,6 +508,6 @@
     $('resetBtn')?.addEventListener('click', (event) => { if (state.mode !== 'upgrades') return; event.preventDefault(); event.stopImmediatePropagation(); resetBuilder(); }, true);
   }
 
-  function init() { injectStyles(); buildUI(); load(); bind(); render(); setMode('stats'); }
+  function init() { injectStyles(); buildUI(); setupRelicTierInputs(); load(); bind(); render(); setMode('stats'); }
   if (document.readyState === 'complete') init(); else window.addEventListener('load', init, { once: true });
 })();
