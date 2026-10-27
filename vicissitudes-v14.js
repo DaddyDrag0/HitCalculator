@@ -408,7 +408,26 @@
     label.className = 'uv-toggle';
     label.title = 'Every 60 seconds, one random border gets +10% final odds and a different random border gets -10%. Hit Calc averages all 12 possible states.';
     label.innerHTML = '<input id="uvVicissitudes" type="checkbox"><span>Vicissitudes</span>';
-    mods.append(label);
+    const group = document.createElement('div');
+    group.className = 'uv-relic-modifier';
+    group.append(label);
+    const tier = document.createElement('select');
+    tier.id = 'uvRelicTierVicissitudes';
+    tier.className = 'uv-relic-tier';
+    tier.setAttribute('aria-label','Vicissitudes relic grade');
+    const grades = ['Base','Platinum','Crystal','Ruby','Galaxy'];
+    const storageKey = 'hitcalc-relic-modifier-tiers-v1';
+    let tiers = {};
+    try { tiers = JSON.parse(localStorage.getItem(storageKey) || '{}') || {}; } catch {}
+    tier.innerHTML = grades.map((name,i) => '<option value="'+i+'">'+name+'</option>').join('');
+    tier.value = String(Math.max(0,Math.min(4,Number(tiers.Vicissitudes)||0)));
+    tier.addEventListener('change', () => {
+      tiers.Vicissitudes = Number(tier.value);
+      try { localStorage.setItem(storageKey,JSON.stringify(tiers)); } catch {}
+      schedule();
+    });
+    group.appendChild(tier);
+    mods.append(group);
     try { $('uvVicissitudes').checked = localStorage.getItem(STORAGE) === '1'; } catch {}
   }
 
