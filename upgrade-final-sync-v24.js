@@ -19,6 +19,7 @@
   const BN = ['Platinum','Crystal','Ruby','Galaxy'];
   const num = (id) => { const v=Number($(id)?.value); return Number.isFinite(v)?v:0; };
   const on = (id) => !!$(id)?.checked;
+  const relicValue = (id, base) => { const v=Number(window.HIT_RELIC_LEVELS?.value?.(id)); return Number.isFinite(v)&&v>0?v:base; };
   const lvl = (id,max) => Math.max(0,Math.min(max,Math.floor(num(id))));
   const skill = (name,id) => SK[name][lvl(id,SK[name].length-1)]||0;
   const sm = (kind,level) => (kind==='Luck'||kind==='Speed' ? (level>=8?1.6:1+.5*level/7) : 1+level/5);
@@ -31,8 +32,8 @@
     const st={Luck:lvl('uvStructureLuck',8),Speed:lvl('uvStructureSpeed',8),Platinum:lvl('uvStructurePlatinum',5),Crystal:lvl('uvStructureCrystal',5),Ruby:lvl('uvStructureRuby',5),Galaxy:lvl('uvStructureGalaxy',5)};
     let luck=1+Math.floor(rolls/1e6)*.1+(charm.Luck||0); luck*=1+(s.Luck+s.AllStat)/100;
     if(on('uvPotLuck3'))luck+=25;if(on('uvPotLegendaryLuck'))luck+=40;if(on('uvPotCursed'))luck*=1.5;if(on('uvPotElixir'))luck*=2;if(on('uvPotEventLuck'))luck*=1.25;
-    luck*=sm('Luck',st.Luck);luck+=lvl('uvDungeonLuck',25)*D.Luck;luck+=chaska(num('uvChaskaLuck'),.25);if(on('uvQuickdraw'))luck*=.8;if(on('uvHeavyHand'))luck*=1.2;luck*=1+auraBonus('Luck')/100;
-    let speed=100+(on('uvPotSpeed3')?300:0)+(on('uvPotLegendarySpeed')?500:0)+(charm.Cooldown||0);speed*=1+(s.RollSpeed+s.AllStat)/100;if(on('uvPotEventSpeed'))speed*=1.25;speed+=lvl('uvDungeonSpeed',25)*D.Speed;if(on('uvQuickdraw'))speed*=1.1;if(on('uvHeavyHand'))speed*=.9;speed*=1+auraBonus('RollSpeed')/100;
+    luck*=sm('Luck',st.Luck);luck+=lvl('uvDungeonLuck',25)*D.Luck;luck+=chaska(num('uvChaskaLuck'),.25);if(on('uvQuickdraw'))luck*=.8;if(on('uvHeavyHand'))luck*=1+relicValue('HeavyHand',20)/100;luck*=1+auraBonus('Luck')/100;
+    let speed=100+(on('uvPotSpeed3')?300:0)+(on('uvPotLegendarySpeed')?500:0)+(charm.Cooldown||0);speed*=1+(s.RollSpeed+s.AllStat)/100;if(on('uvPotEventSpeed'))speed*=1.25;speed+=lvl('uvDungeonSpeed',25)*D.Speed;if(on('uvQuickdraw'))speed*=1+relicValue('Quickdraw',10)/100;if(on('uvHeavyHand'))speed*=.9;speed*=1+auraBonus('RollSpeed')/100;
     const all=1+s.AllStat/100,boost=on('uvBorderBoost')?1.5:1,divine=on('uvPotDivine')?1.1:1;
     const cb={Platinum:chaska(num('uvChaskaPlatinum'),.05),Crystal:chaska(num('uvChaskaCrystal'),.10),Ruby:0,Galaxy:chaska(num('uvChaskaGalaxy'),.25)}, borders={};
     for(const name of BN){let base=(1+(charm[name]||0)+s[name])*all;base*=sm(name,st[name]);borders[name]=(base*boost+lvl(`uvDungeon${name}`,25)*D[name]+cb[name])*divine;borders[name]*=1+auraBonus(name)/100;}
@@ -41,6 +42,6 @@
   let writing=false;
   function apply(){const root=$(ROOT_ID);if(!root||root.hidden||getComputedStyle(root).display==='none')return;const v=calc();const expected={uvOutLuck:fmt(v.luck),uvOutSpeed:`${fmt(v.speed)}%`,...Object.fromEntries(BN.map(n=>[`uvOut${n}`,`${fmt(v.borders[n])}×`]))};writing=true;try{for(const [id,text] of Object.entries(expected)){const el=$(id);if(el&&el.textContent!==text)el.textContent=text;}}finally{writing=false;}}
   function burst(){apply();requestAnimationFrame(apply);requestAnimationFrame(()=>requestAnimationFrame(apply));setTimeout(apply,40);setTimeout(apply,120);setTimeout(apply,300);}
-  function init(){const root=$(ROOT_ID);if(!root)return;window.__hitCalcFinalUpgradeSyncV24=burst;document.addEventListener('click',e=>{if(e.target.closest('.uv-mode[data-view="upgrades"]'))burst();},true);root.addEventListener('input',()=>queueMicrotask(apply));root.addEventListener('change',()=>queueMicrotask(apply));root.addEventListener('click',()=>requestAnimationFrame(apply));const outputs=['uvOutLuck','uvOutSpeed',...BN.map(n=>`uvOut${n}`)].map($).filter(Boolean);if(outputs.length){const obs=new MutationObserver(()=>{if(!writing)queueMicrotask(apply);});for(const el of outputs)obs.observe(el,{childList:true,characterData:true,subtree:true});}burst();}
+  function init(){const root=$(ROOT_ID);if(!root)return;window.__hitCalcFinalUpgradeSyncV24=burst;document.addEventListener('click',e=>{if(e.target.closest('.uv-mode[data-view="upgrades"]'))burst();},true);root.addEventListener('input',()=>queueMicrotask(apply));root.addEventListener('change',()=>queueMicrotask(apply));document.addEventListener('hitcalc-relic-tier-change',()=>queueMicrotask(apply));root.addEventListener('click',()=>requestAnimationFrame(apply));const outputs=['uvOutLuck','uvOutSpeed',...BN.map(n=>`uvOut${n}`)].map($).filter(Boolean);if(outputs.length){const obs=new MutationObserver(()=>{if(!writing)queueMicrotask(apply);});for(const el of outputs)obs.observe(el,{childList:true,characterData:true,subtree:true});}burst();}
   if(document.readyState==='complete')init();else window.addEventListener('load',init,{once:true});
 })();
