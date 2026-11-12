@@ -42,3 +42,19 @@ body #uvBossPot:checked{accent-color:#777}
 .ip-totals strong{color:var(--text,#fff);font-size:17px;font-weight:720}
 .ip-note{margin-top:16px;font-size:10px;line-height:1.6;color:var(--muted,#9aa5b4)}
 @media(max-width:780px){.ip-fields,.ip-levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Full Instant Packs tab, same controls as other Hit tools. */
+#hitInstantPacks{margin:18px 0 35px;min-height:380px}
+#hitInstantPacks[hidden]{display:none!important}
+#hitInstantPacks.ip-tab{border:0;background:none;border-radius:0}
+#hitInstantPacks .ip-tab-head{padding:12px 0 18px;border-bottom:1px solid var(--line,#293342)}
+#hitInstantPacks .ip-tab-head h2{font-size:24px;letter-spacing:-.03em;font-weight:740;color:var(--text,#fff);margin:0 0 7px}
+#hitInstantPacks .ip-tab-head p{font-size:12px;color:var(--muted,#9aa5b4);margin:0}
+#hitInstantPacks .ip-inner{padding:20px 0;border:0}
+#hitInstantPacks .ip-fields{grid-template-columns:repeat(2,minmax(0,260px));gap:12px}
+#hitInstantPacks .ip-levels{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:22px;gap:14px}
+#hitInstantPacks .ip-fields input,#hitInstantPacks .ip-levels input{max-width:100%}
+#hitInstantPacks .ip-totals{justify-content:space-between;margin-top:19px;max-width:860px}
+#hitInstantPacks .ip-totals strong{font-size:23px}
+#hitInstantPacks .ip-note{max-width:950px}
+@media(max-width:720px){#hitInstantPacks .ip-fields,#hitInstantPacks .ip-levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
