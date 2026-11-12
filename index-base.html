@@ -7,11 +7,12 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Hit Calc</title>
-  <link rel="stylesheet" href="styles.css?v=20261003-chaska-breakpoints-1" />
+  <title>Hit Calc · November 2026 Preview</title>
+  <link rel="stylesheet" href="./overhaul-hit.css" />
+  <link rel="stylesheet" href="styles.css?v=20261111-overhaul-preview-01" />
   <script>
     (() => {
-      const version = "20261003-chaska-breakpoints-1";
+      const version = "20261111-overhaul-preview-01";
       const key = "hitCalcBuild";
       try {
         if (localStorage.getItem(key) !== version) {
@@ -264,7 +265,7 @@
     </section>
   </main>
 
-  <script src="app.js?v=20261003-chaska-breakpoints-1"></script>
+  <script src="app.js?v=20261111-overhaul-preview-01"></script>
   <script>
     const bossPot = document.getElementById("bossPot");
     const luckySurge = document.getElementById("luckySurge");
@@ -301,11 +302,26 @@
 
     activeCards = function() {
       const now = Date.now() / 1000;
-      return CARD_POOL.filter((card) => {
-        if (card.expires && card.expires <= now) return false;
-        if (card.weather === "Time Storm" && !els.timeStorm.checked) return false;
-        return true;
-      });
+      const extra = [];
+      const source = globalThis.ROLL_SIM_DATA_V16?.cards || [];
+      const modifier = window.HIT_OVERHAUL_MODIFIERS?.config;
+      const weather = modifier?.apply ? modifier.weather : 'None';
+      if (['The Great Deluge','Reality Fracture','Dreamfall'].includes(weather)) {
+        for (const card of source.filter(x => x.weather === weather)) {
+          extra.push({ name:card.name, rarity:card.rarity, expires:null, rollFactor:0.5, weather });
+        }
+      }
+      const from = Date.parse('2026-11-06T23:00:00Z')/1000;
+      const to = Date.parse('2026-11-15T23:00:00Z')/1000;
+      if (now >= from && now < to) {
+        const cannon = [{name:'Naga',rarity:1777776},{name:'Uncle Sam',rarity:3000000},{name:'Turkey',rarity:333000000},{name:'Hera',rarity:38450000},{name:'Azure Witch',rarity:3118418147}];
+        for (const card of cannon) extra.push({ ...card, expires:to, rollFactor:1/3, cannon:true });
+      }
+      const seen=new Set();
+      return [...CARD_POOL,...extra]
+        .filter(card => (!card.expires || card.expires > now) && (card.weather !== 'Time Storm' || els.timeStorm.checked))
+        .sort((a,b) => b.rarity-a.rarity)
+        .filter(card => !seen.has(card.name) && seen.add(card.name));
     };
 
     try {
@@ -315,6 +331,8 @@
       if (typeof saved.theDice === "boolean") theDice.checked = saved.theDice;
     } catch {}
 
+    bossPot.checked=false;
+    bossPot.disabled=true; // Boss Potions were retired in the November overhaul
     saveStats = function() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -346,7 +364,7 @@
 
       for (const card of cards) {
         const rollRarity = card.rarity * card.rollFactor;
-        const bossMultiplier = bossPot.checked && card.boss ? 5 : 1;
+        const bossMultiplier = 1; // retired Boss Potion; boss-specific Luck must be modeled per unlocked boss
         const success = Math.min(1, (stats.Luck * luckMultiplier * bossMultiplier) / rollRarity);
         const probability = remaining * success;
         if (probability > 0) distribution.push({ card, probability });
@@ -439,5 +457,6 @@
 
     render();
   </script>
+  <script src="./overhaul-hit.js"></script>
 </body>
 </html>
