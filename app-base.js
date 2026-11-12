@@ -133,13 +133,14 @@ function formatChance(probability) {
 }
 
 function getStats() {
+  const o=window.HIT_OVERHAUL_MODIFIERS?.get?.()||{luck:1,speed:1,border:1,double:0};
   return {
-    Luck: readNumber(els.luck, 1, 0),
-    rollSpeed: readNumber(els.rollSpeed, 100, 0.01),
-    Platinum: readNumber($(BORDERS.Platinum.luckId), 0, 0),
-    Crystal: readNumber($(BORDERS.Crystal.luckId), 0, 0),
-    Ruby: readNumber($(BORDERS.Ruby.luckId), 0, 0),
-    Galaxy: readNumber($(BORDERS.Galaxy.luckId), 0, 0),
+    Luck: readNumber(els.luck, 1, 0)*(o.luck||1),
+    rollSpeed: readNumber(els.rollSpeed, 100, 0.01)*(o.speed||1),
+    Platinum: readNumber($(BORDERS.Platinum.luckId), 0, 0)*(o.border||1),
+    Crystal: readNumber($(BORDERS.Crystal.luckId), 0, 0)*(o.border||1),
+    Ruby: readNumber($(BORDERS.Ruby.luckId), 0, 0)*(o.border||1),
+    Galaxy: readNumber($(BORDERS.Galaxy.luckId), 0, 0)*(o.border||1),
   };
 }
 
@@ -150,7 +151,7 @@ function speedStructureMultiplier() {
 }
 
 function rollsPerSecond(stats) {
-  return (stats.rollSpeed / 100) * speedStructureMultiplier() * (els.timeStorm.checked ? 2 : 1);
+  return (stats.rollSpeed / 100) * speedStructureMultiplier() * (els.timeStorm.checked ? 2 : 1) * (1+(window.HIT_OVERHAUL_MODIFIERS?.get?.().double||0));
 }
 
 function borderRate(name, stats) {
