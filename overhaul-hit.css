@@ -24,3 +24,21 @@ body #uvBossPot{pointer-events:none;opacity:.4}
 body #uvBossPot:checked{accent-color:#777}
 @media(max-width:1200px){.nov-fields,.nov-sockets{grid-template-columns:repeat(3,minmax(0,1fr))}.nov-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:700px){.nov-head{align-items:flex-start;flex-direction:column}.nov-body{padding:14px}.nov-fields,.nov-sockets{grid-template-columns:repeat(2,minmax(0,1fr))}.nov-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Compact Instant Pack tool — separate from combat/Depths. */
+.ip-compact{border:1px solid var(--line,#293342);border-radius:12px;background:var(--panel,#0e121a);margin:0 0 20px}
+.ip-compact summary{cursor:pointer;list-style:none;padding:16px 20px;font-size:14px;font-weight:750}
+.ip-compact summary::-webkit-details-marker{display:none}
+.ip-compact summary:after{content:'+';float:right;color:var(--muted,#9aa5b4)}
+.ip-compact[open] summary:after{content:'−'}
+.ip-compact summary span{font-size:11px;color:var(--muted,#9aa5b4);font-weight:450;margin-left:10px}
+.ip-inner{padding:16px 20px;border-top:1px solid var(--line,#293342)}
+.ip-fields,.ip-levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.ip-fields label,.ip-levels label{font-size:11px;font-weight:690;color:var(--muted,#9aa5b4);display:flex;flex-direction:column;gap:7px}
+.ip-levels label small{font-size:9px;font-weight:400}
+.ip-fields input,.ip-levels input{width:100%;background:var(--panel-2,#111822);border:1px solid var(--line,#293342);border-radius:8px;color:var(--text,#fff);padding:10px;box-sizing:border-box}
+.ip-totals{display:flex;gap:20px;flex-wrap:wrap;border-top:1px solid var(--line,#293342);padding:16px 0 0}
+.ip-totals span{color:var(--muted,#9aa5b4);font-size:11px;display:flex;flex-direction:column;gap:5px}
+.ip-totals strong{color:var(--text,#fff);font-size:17px;font-weight:720}
+.ip-note{margin-top:16px;font-size:10px;line-height:1.6;color:var(--muted,#9aa5b4)}
+@media(max-width:780px){.ip-fields,.ip-levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
