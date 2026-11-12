@@ -23,20 +23,52 @@ function build(){
  <div class="ip-note">Pack upgrades are separate from normal rolling. The game configuration uses 5 discoveries/point; the announcement says 50. At max Multi-card level, average cards per pack = 1.25. Server odds for specific card pulls aren't verified.</div>`;
 }
 function ready(){
- const target=document.querySelector(".nov-overhaul")||document.querySelector(".page>.topbar");
- if(!target)return;
- const wrap=document.createElement("details");
- wrap.id="hit-instant-pack-planner";wrap.className="ip-compact";
- wrap.innerHTML=`<summary>Normal Instant Packs <span>Upgrade planner & opening estimates</span></summary><div class="ip-inner"></div>`;
- target.after(wrap);
+ let tries=0;
+ function initTab(){
+ const switcher=document.querySelector(".uv-mode-switch"), page=document.querySelector("main.page");
+ if(!switcher||!page){if(++tries<120)setTimeout(initTab,80);return}
+ if(document.getElementById("hitInstantPacks"))return;
+ const btn=document.createElement("button");btn.type="button";btn.className="uv-mode";btn.dataset.view="instantpacks";btn.textContent="Instant Packs";
+ const builds=switcher.querySelector('[data-view="builds"]');if(builds)builds.after(btn);else switcher.append(btn);
+ const wrap=document.createElement("section");wrap.id="hitInstantPacks";wrap.className="ip-compact ip-tab";wrap.hidden=true;
+ wrap.innerHTML='<div class="ip-tab-head"><h2>Normal Instant Packs</h2><p>Upgrade points and expected cards per opening</p></div><div class="ip-inner"></div>';
+ switcher.insertAdjacentElement("afterend",wrap);
+ let current="stats";
+ function show(isInstant){
+  const targets=["directCalcView","upgradeCalcV2","rollSimulatorV15","optimizerCalcV1","savedBuildsV1"];
+  if(isInstant){
+   for(const id of targets){const el=document.getElementById(id);if(!el)continue;el.hidden=true;el.style.setProperty("display","none","important")}
+   document.querySelectorAll(".nov-overhaul").forEach(el=>el.style.setProperty("display","none","important"));
+   for(const b of switcher.querySelectorAll(".uv-mode"))b.classList.toggle("active",b.dataset.view==="instantpacks");
+   wrap.hidden=false;wrap.style.setProperty("display","block","important");
+  }else{
+   wrap.hidden=true;wrap.style.setProperty("display","none","important");
+   document.querySelectorAll(".nov-overhaul").forEach(el=>el.style.removeProperty("display"));
+  }
+ }
+ document.addEventListener("click",event=>{
+  const tab=event.target.closest(".uv-mode-switch .uv-mode");
+  if(!tab)return;
+  if(tab.dataset.view==="instantpacks"){
+   event.preventDefault();event.stopImmediatePropagation();show(true);current="instantpacks";
+  }else if(current==="instantpacks"){
+   current=tab.dataset.view;show(false);
+  }
+ },true);
  function render(){
   const container=wrap.querySelector(".ip-inner");container.innerHTML=build();
   const assign=(selector,key)=>container.querySelector(selector)?.addEventListener("change",e=>{state[key]=Math.max(0,Number(e.target.value)||0);saveAndRender()});
   assign("#ip-packs","packs");assign("#ip-discoveries","discoveries");
-  container.querySelectorAll("[data-ip-level]").forEach(el=>el.addEventListener("change",()=>{const def=config.find(x=>x[0]===el.dataset.ipLevel);state.levels[el.dataset.ipLevel]=Math.max(0,Math.min(def[2],Math.floor(Number(el.value)||0)));saveAndRender()}));
+  container.querySelectorAll("[data-ip-level]").forEach(el=>el.addEventListener("change",()=>{
+   const def=config.find(x=>x[0]===el.dataset.ipLevel);
+   state.levels[el.dataset.ipLevel]=Math.max(0,Math.min(def[2],Math.floor(Number(el.value)||0)));
+   saveAndRender();
+  }));
  }
  function saveAndRender(){try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(_){}render()}
  render();
+ }
+ initTab();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ready);else ready();
 })();
