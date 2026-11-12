@@ -16,7 +16,7 @@
     }
   } catch {}
   (async()=>{
-    const version='20261111-overhaul-preview-01';
+    const version='20261112-hit-packs-v2';
     try{
       const response=await fetch(`./index-base.html?rev=${version}`,{cache:'no-store'});
       if(!response.ok)throw new Error(`HTTP ${response.status}`);
