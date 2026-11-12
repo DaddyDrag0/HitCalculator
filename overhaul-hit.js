@@ -22,6 +22,13 @@ return {luck:(1+g.Green/100)*(1+w[0]/100)*beginner,speed:(1+g.Blue/100)*(1+w[1]/
 }
 window.HIT_OVERHAUL_MODIFIERS={get:()=>st.apply?bonuses():{luck:1,speed:1,border:1,double:0,pve:1,bossLuck:0,beginner:1,gem:{Green:0,Blue:0,Red:0,Yellow:0,Purple:0}},preview:bonuses,config:st};
 function init(){
+function retireBossPot(){
+for(const id of ["bossPot","uvBossPot"]){
+  const el=document.getElementById(id);
+  if(el){el.checked=false;el.disabled=true;const label=el.closest("label");if(label&&!label.dataset.retired){label.dataset.retired="true";label.title="Boss Potions were retired in the November 2026 update";}}
+}}
+retireBossPot();
+window.addEventListener("load",retireBossPot,{once:true});
 const anchor=document.querySelector(".page .topbar");
 if(!anchor)return;
 const box=document.createElement("section");box.className="nov-overhaul";anchor.insertAdjacentElement("afterend",box);
@@ -43,7 +50,7 @@ bind("novApply","apply","check");bind("novCharm","charm");bind("novWeather","wea
 box.querySelectorAll("[data-socket]").forEach(el=>el.addEventListener("change",()=>{st.grades[Number(el.dataset.socket)]=el.value;saveAndDraw()}));
 }
 function saveAndDraw(){try{localStorage.setItem(key,JSON.stringify(st))}catch(_){ }draw();document.getElementById("luck")?.dispatchEvent(new Event("change",{bubbles:false}))}
-draw();document.getElementById("luck")?.dispatchEvent(new Event("change",{bubbles:false}));
+draw();retireBossPot();document.getElementById("luck")?.dispatchEvent(new Event("change",{bubbles:false}));
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
